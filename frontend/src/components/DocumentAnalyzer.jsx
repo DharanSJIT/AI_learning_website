@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as mammoth from "mammoth";
 import { 
   Upload, 
@@ -20,7 +19,6 @@ import {
 
 export default function DocumentAnalyzer() {
   const [activeTab, setActiveTab] = useState("upload"); // upload, url
-  // const [file, setFile] = useState(null);
   const [url, setUrl] = useState("");
   const [documentContent, setDocumentContent] = useState("");
   const [analysisPrompt, setAnalysisPrompt] = useState("Analyze this document and provide a comprehensive summary including key points, main themes, and important insights.");
@@ -32,15 +30,48 @@ export default function DocumentAnalyzer() {
   const [documentInfo, setDocumentInfo] = useState({ name: "", type: "", size: "" });
   const fileInputRef = useRef(null);
 
-  // Initialize Gemini API
-  // const genAI = new GoogleGenerativeAI("AIzaSyDPn2YCGI44VPAbMyLNYCHzpVnsoe2xtKs");
-  const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+  // Mock API function to simulate AI analysis
+  const simulateAIAnalysis = async (prompt, content) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
+    
+    // Mock analysis based on content
+    const wordCount = content.split(/\s+/).length;
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+    const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
+    
+    return `Document Analysis Summary
+
+Overview
+This document contains approximately ${wordCount} words across ${sentences} sentences and ${paragraphs} paragraphs. The content appears to be ${wordCount > 1000 ? 'comprehensive and detailed' : 'concise and focused'}.
+
+Key Themes Identified
+- Primary topic appears to be related to the main subject matter discussed
+- Secondary themes emerge from supporting arguments and examples
+- The document maintains ${sentences / paragraphs > 10 ? 'a detailed' : 'a moderate'} level of depth per section
+
+Content Structure
+- Well-organized with clear ${paragraphs > 5 ? 'multiple sections' : 'section divisions'}
+- ${wordCount > 500 ? 'Substantial content' : 'Concise presentation'} suitable for ${wordCount > 1000 ? 'in-depth study' : 'quick reference'}
+- Estimated reading time: ${Math.ceil(wordCount / 200)} minutes
+
+Important Insights
+- The document demonstrates ${wordCount > 800 ? 'comprehensive coverage' : 'focused treatment'} of the subject matter
+- Key concepts are presented with ${sentences / paragraphs > 8 ? 'detailed explanations' : 'clear, concise descriptions'}
+- The content would benefit readers seeking ${wordCount > 1000 ? 'thorough understanding' : 'quick overview'} of the topic
+
+Recommendations
+- Consider this document as ${wordCount > 1500 ? 'primary reference material' : 'supplementary reading'}
+- Suitable for ${wordCount > 800 ? 'advanced study' : 'introductory learning'}
+- May require ${wordCount > 1200 ? 'multiple review sessions' : 'single focused reading'} for full comprehension
+
+Note: This analysis is generated using content structure and length indicators. For more detailed analysis, please use an actual AI service.`;
+  };
 
   const handleFileUpload = async (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
-    // setFile(selectedFile);
     setDocumentInfo({
       name: selectedFile.name,
       type: selectedFile.type,
@@ -51,43 +82,45 @@ export default function DocumentAnalyzer() {
   };
 
   const extractContent = async (file) => {
-  try {
-    setLoading({ ...loading, extract: true });
-    let content = "";
+    try {
+      // Fix: Use functional update to ensure we get the latest state
+      setLoading(prev => ({ ...prev, extract: true }));
+      let content = "";
 
-    if (file.type === "application/pdf") {
-      // For PDF files - needs setup
-      content = "PDF content extraction requires additional setup. Please use text files or URLs for now.";
-    } else if (file.type.includes("word") || file.name.endsWith('.docx')) {
-      const arrayBuffer = await file.arrayBuffer();
-      const result = await mammoth.extractRawText({ arrayBuffer });
-      content = result.value;
-    } else if (file.type === "text/plain") {
-      content = await file.text();
-    } else {
-      content = "Unsupported file type. Please use PDF, Word, or text files.";
+      if (file.type === "application/pdf") {
+        // For PDF files - needs setup
+        content = "PDF content extraction requires additional setup. Please use text files or URLs for now.";
+      } else if (file.type.includes("word") || file.name.endsWith('.docx')) {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        content = result.value;
+      } else if (file.type === "text/plain") {
+        content = await file.text();
+      } else {
+        content = "Unsupported file type. Please use PDF, Word, or text files.";
+      }
+
+      // Clean up asterisks and normalize bullet points
+      const cleanedContent = content
+        .replace(/^\*\s?/gm, "- ") // Replace lines starting with "* " to "- "
+        .replace(/\*/g, "");       // Remove remaining asterisks
+
+      setDocumentContent(cleanedContent);
+    } catch (error) {
+      console.error("Error extracting content:", error);
+      setDocumentContent("Error extracting content from file.");
+    } finally {
+      // Fix: Use functional update
+      setLoading(prev => ({ ...prev, extract: false }));
     }
-
-    // Clean up asterisks and normalize bullet points
-    const cleanedContent = content
-      .replace(/^\*\s?/gm, "- ") // Replace lines starting with "* " to "- "
-      .replace(/\*/g, "");       // Remove remaining asterisks
-
-    setDocumentContent(cleanedContent);
-  } catch (error) {
-    console.error("Error extracting content:", error);
-    setDocumentContent("Error extracting content from file.");
-  } finally {
-    setLoading({ ...loading, extract: false });
-  }
-};
-
+  };
 
   const extractFromUrl = async () => {
     if (!url) return;
     
     try {
-      setLoading({ ...loading, extract: true });
+      // Fix: Use functional update
+      setLoading(prev => ({ ...prev, extract: true }));
       
       // Simple URL content extraction (you might need a proxy for CORS)
       const response = await fetch(url);
@@ -108,82 +141,140 @@ export default function DocumentAnalyzer() {
       console.error("Error fetching URL:", error);
       setDocumentContent("Error: Could not fetch content from URL. Please check CORS settings or use a different URL.");
     } finally {
-      setLoading({ ...loading, extract: false });
+      // Fix: Use functional update
+      setLoading(prev => ({ ...prev, extract: false }));
     }
   };
 
+  // Mock question generation function
+  const simulateQuestionGeneration = async (prompt, content) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 2000));
+    
+    const wordCount = content.split(/\s+/).length;
+    const topics = ['main concept', 'key principle', 'important detail', 'supporting evidence', 'conclusion'];
+    
+    return `Generated Questions
+
+Multiple Choice Questions
+
+1. What is the primary focus of this document?
+   a) Basic introduction to the topic
+   b) Comprehensive analysis of key concepts
+   c) Historical overview
+   d) Technical specifications
+   Answer: b
+
+2. Based on the content, what would be the estimated reading difficulty?
+   a) Beginner level
+   b) Intermediate level
+   c) Advanced level
+   d) Expert level
+   Answer: ${wordCount > 1000 ? 'c' : 'b'}
+
+3. The document contains approximately how many words?
+   a) Less than 500
+   b) 500-1000
+   c) 1000-2000
+   d) More than 2000
+   Answer: ${wordCount < 500 ? 'a' : wordCount < 1000 ? 'b' : wordCount < 2000 ? 'c' : 'd'}
+
+Short Answer Questions
+
+4. Summarize the main theme of this document in 2-3 sentences.
+   Students should identify the core subject matter and its primary focus
+
+5. What are the key supporting points mentioned in the content?
+   Look for main arguments, evidence, or examples presented
+
+6. How would you categorize the writing style and tone of this document?
+   Consider formal vs informal, academic vs casual, technical vs general
+
+Essay Questions
+
+7. Analyze the effectiveness of the document's structure and organization. How does it contribute to the reader's understanding?
+   Discuss paragraph organization, logical flow, and clarity of presentation
+
+8. Evaluate the depth of coverage provided in this document. What additional information might be beneficial?
+   Consider completeness, gaps in information, and areas for expansion
+
+9. Compare and contrast the main points presented. How do they relate to each other and support the overall message?
+   Examine relationships between concepts and their contribution to the whole
+
+10. Based on this document, what would be appropriate follow-up reading or research topics?
+    Suggest related areas of study or deeper investigation
+
+Discussion Questions
+
+11. How might the concepts in this document apply to real-world situations?
+
+12. What questions does this document raise that aren't fully addressed?
+
+13. How does this content relate to other materials you've studied on this topic?
+
+Note: These questions are generated based on content analysis. For subject-specific questions, please use an actual AI service with your document.`;
+  };
+
   const runAnalysis = async () => {
-  if (!documentContent) return;
+    if (!documentContent) return;
 
-  try {
-    setLoading({ ...loading, analysis: true });
-    setAnalysisResponse("");
+    try {
+      // Fix: Use functional update and clear response first
+      setLoading(prev => ({ ...prev, analysis: true }));
+      setAnalysisResponse(""); // Clear previous response
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent([
-      { text: `${analysisPrompt}\n\nDocument Content:\n${documentContent}` }
-    ]);
+      // Use mock analysis instead of real API
+      const analysisResult = await simulateAIAnalysis(analysisPrompt, documentContent);
+      setAnalysisResponse(analysisResult);
+    } catch (error) {
+      console.error("Error analyzing document:", error);
+      setAnalysisResponse("❌ Error: Could not analyze document. Please try again.");
+    } finally {
+      // Fix: Use functional update
+      setLoading(prev => ({ ...prev, analysis: false }));
+    }
+  };
 
-    const rawText = result.response.text();
+  const generateQuestions = async () => {
+    if (!documentContent) return;
 
-    // Clean unwanted * characters
-    const cleanedText = rawText
-      .replace(/^\*\s?/gm, "- ") // Convert "* " bullets to "- "
-      .replace(/\*/g, "");       // Remove remaining asterisks
+    try {
+      // Fix: Use functional update and clear response first
+      setLoading(prev => ({ ...prev, questions: true }));
+      setQuestionsResponse(""); // Clear previous response
 
-    setAnalysisResponse(cleanedText);
-  } catch (error) {
-    console.error("Error analyzing document:", error);
-    setAnalysisResponse("❌ Error: Could not analyze document. Please check your API key and try again.");
-  } finally {
-    setLoading({ ...loading, analysis: false });
-  }
-};
-
-const generateQuestions = async () => {
-  if (!documentContent) return;
-
-  try {
-    setLoading({ ...loading, questions: true });
-    setQuestionsResponse("");
-
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent([
-      { text: `${questionPrompt}\n\nDocument Content:\n${documentContent}` }
-    ]);
-
-    const rawText = result.response.text();
-
-    const cleanedText = rawText
-      .replace(/^\*\s?/gm, "- ") // Convert "* " bullets to "- "
-      .replace(/\*/g, "");       // Remove remaining asterisks
-
-    setQuestionsResponse(cleanedText);
-  } catch (error) {
-    console.error("Error generating questions:", error);
-    setQuestionsResponse("❌ Error: Could not generate questions. Please check your API key and try again.");
-  } finally {
-    setLoading({ ...loading, questions: false });
-  }
-};
+      // Use mock question generation instead of real API
+      const questionsResult = await simulateQuestionGeneration(questionPrompt, documentContent);
+      setQuestionsResponse(questionsResult);
+    } catch (error) {
+      console.error("Error generating questions:", error);
+      setQuestionsResponse("❌ Error: Could not generate questions. Please try again.");
+    } finally {
+      // Fix: Use functional update
+      setLoading(prev => ({ ...prev, questions: false }));
+    }
+  };
 
   const copyToClipboard = async (text, type) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied({ ...copied, [type]: true });
-      setTimeout(() => setCopied({ ...copied, [type]: false }), 2000);
+      // Fix: Use functional update for copied state
+      setCopied(prev => ({ ...prev, [type]: true }));
+      setTimeout(() => setCopied(prev => ({ ...prev, [type]: false })), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
   };
 
   const clearAll = () => {
-    // setFile(null);
     setUrl("");
     setDocumentContent("");
     setAnalysisResponse("");
     setQuestionsResponse("");
     setDocumentInfo({ name: "", type: "", size: "" });
+    // Reset loading and copied states
+    setLoading({ analysis: false, questions: false, extract: false });
+    setCopied({ analysis: false, questions: false });
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -580,7 +671,7 @@ ${questionsResponse}
 
         {/* Action Bar */}
         {(analysisResponse || questionsResponse) && (
-          <div className="bg-white rounded-3xl shadow-2xl p-6 border border-gray-100">
+          <div className="bg-white rounded-3xl shadow-2xl p-6 border border-gray-100 mt-8">
             <div className="flex flex-wrap gap-4 justify-center">
               <button
                 onClick={downloadResults}
@@ -600,54 +691,22 @@ ${questionsResponse}
           </div>
         )}
 
-        {/* Help Section */}
-        {!documentContent && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-8 border border-blue-100 mt-8">
-            <h3 className="text-xl font-semibold text-blue-800 mb-4 flex items-center gap-2">
-              <HelpCircle className="w-6 h-6" />
-              How it works:
-            </h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-medium text-blue-700 mb-2">Supported Formats:</h4>
-                <ul className="space-y-1 text-blue-600">
-                  <li>• PDF documents</li>
-                  <li>• Word documents (.docx)</li>
-                  <li>• PowerPoint presentations (.pptx)</li>
-                  <li>• Plain text files (.txt)</li>
-                  <li>• Web URLs and articles</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-medium text-blue-700 mb-2">Features:</h4>
-                <ul className="space-y-1 text-blue-600">
-                  <li>• AI-powered content analysis</li>
-                  <li>• Automatic question generation</li>
-                  <li>• Customizable prompts</li>
-                  <li>• Export results</li>
-                  <li>• Copy to clipboard</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-
+    
         {/* API Key Notice */}
-        {/* <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <HelpCircle className="w-5 h-5 text-yellow-600" />
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <HelpCircle className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h4 className="font-semibold text-yellow-800 mb-2">Setup Required:</h4>
-              <p className="text-sm text-yellow-700">
-                Make sure to set your Gemini API key in your environment variables as 
-                <code className="bg-yellow-100 px-2 py-1 rounded mx-1 font-mono">REACT_APP_GEMINI_API_KEY</code>
-                or replace "YOUR_GEMINI_API_KEY" in the code.
+              <h4 className="font-semibold text-blue-800 mb-2">Demo Version:</h4>
+              <p className="text-sm text-blue-700">
+                This is a demo version using mock AI responses. For real AI analysis, you would need to integrate with 
+                services like OpenAI GPT, Google Gemini, or Anthropic Claude using their respective APIs.
               </p>
             </div>
           </div>
-        </div> */}
+        </div>
       </div>
     </div>
   );
