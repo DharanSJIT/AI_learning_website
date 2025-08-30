@@ -264,21 +264,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Configure CORS
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000", // React dev server
-      "http://localhost:5173", // Vite dev server
-      "http://localhost:5174", // Vite dev server (alternative port)
-      "http://127.0.0.1:3000",
-      "http://127.0.0.1:5173",
-      "http://127.0.0.1:5174",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors());
 
 // JSON middleware
 app.use(express.json({ limit: "10mb" })); // Increased limit for larger resumes
