@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import * as mammoth from "mammoth";
 import { 
   Upload, 
   FileText, 
@@ -16,11 +17,10 @@ import {
   Zap,
   Globe
 } from "lucide-react";
-import * as mammoth from "mammoth";
 
 export default function DocumentAnalyzer() {
   const [activeTab, setActiveTab] = useState("upload"); // upload, url
-  const [file, setFile] = useState(null);
+  // const [file, setFile] = useState(null);
   const [url, setUrl] = useState("");
   const [documentContent, setDocumentContent] = useState("");
   const [analysisPrompt, setAnalysisPrompt] = useState("Analyze this document and provide a comprehensive summary including key points, main themes, and important insights.");
@@ -40,7 +40,7 @@ export default function DocumentAnalyzer() {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
-    setFile(selectedFile);
+    // setFile(selectedFile);
     setDocumentInfo({
       name: selectedFile.name,
       type: selectedFile.type,
@@ -178,7 +178,7 @@ const generateQuestions = async () => {
   };
 
   const clearAll = () => {
-    setFile(null);
+    // setFile(null);
     setUrl("");
     setDocumentContent("");
     setAnalysisResponse("");
