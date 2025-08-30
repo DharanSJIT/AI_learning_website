@@ -1,0 +1,20 @@
+/* Tailwind Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles */
+body {
+  @apply bg-slate-50 text-slate-900;
+}
+
+/* Hide scrollbar globally */
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* Hide scrollbar for WebKit browsers (Chrome, Safari, etc.) */
+*::-webkit-scrollbar {
+  display: none;
+}
