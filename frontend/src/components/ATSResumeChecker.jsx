@@ -153,12 +153,12 @@ const ATSResumeChecker = () => {
     }
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
-    if (score >= 40) return "text-orange-600";
-    return "text-red-600";
-  };
+  // const getScoreColor = (score) => {
+  //   if (score >= 80) return "text-green-600";
+  //   if (score >= 60) return "text-yellow-600";
+  //   if (score >= 40) return "text-orange-600";
+  //   return "text-red-600";
+  // };
 
   const getScoreBackground = (score) => {
     if (score >= 80) return "from-green-400 to-emerald-500";
@@ -201,7 +201,7 @@ const ATSResumeChecker = () => {
   };
 
   // Enhanced Card Components
-  const StrengthCard = ({ strength, index }) => (
+  const StrengthCard = ({ strength}) => (
     <div className="group relative bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300 hover:scale-105">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
@@ -218,7 +218,7 @@ const ATSResumeChecker = () => {
     </div>
   );
 
-  const WeaknessCard = ({ weakness, index }) => (
+  const WeaknessCard = ({ weakness }) => (
     <div className="group relative bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300 hover:scale-105">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center shadow-lg">

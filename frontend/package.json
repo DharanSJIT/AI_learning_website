@@ -12,8 +12,12 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "axios": "^1.4.0",
+    "docx": "^9.5.1",
+    "file-saver": "^2.0.5",
+    "firebase": "^12.2.1",
     "framer-motion": "^12.23.12",
     "jspdf": "^3.0.2",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.542.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
