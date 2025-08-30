@@ -88,7 +88,7 @@ const ATSResumeChecker = () => {
         formData.append("resumeText", resumeText);
       }
 
-      const response = await fetch("http://localhost:4000/api/ats/ats-check", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ats/ats-check`, {
         method: "POST",
         body: formData,
       });
