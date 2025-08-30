@@ -96,7 +96,7 @@ export default function AI_TodoList() {
     if (!task || !task.aiContent) return;
 
     try {
-      const res = await fetch("http://localhost:4000/api/gemini/summarize", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/gemini/summarize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: task.aiContent })
