@@ -1,4 +1,6 @@
-# AI-Powered Learning Website 📚
+<div align="center">
+ # AI-Powered Learning Website 📚
+ </div>
 
 # Overview 🚀
 The AI-Powered Learning Website is an interactive learning platform that integrates multiple learning and productivity tools. It enables learners to explore curated learning resources, generate AI-powered quizzes, track their progress, and manage their educational journey seamlessly in one place.
@@ -115,6 +117,11 @@ Email: dharan.mj05@gmail.com
 GitHub: DharanSJIT
 
 Phone : 9942548955
+
+
+<div align="center">
+⭐️ Don't forget to star this repository if you find it helpful!
+</div>
 
 
 
