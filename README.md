@@ -19,7 +19,7 @@ The AI-Powered Learning Website is an interactive learning platform that integra
 
 🌙 Modern UI/UX – Responsive layout with light/dark mode
 
- # Tech Stack
+ # Tech Stack 🛠️
 
 Frontend: React + Vite
 Styling: TailwindCSS
