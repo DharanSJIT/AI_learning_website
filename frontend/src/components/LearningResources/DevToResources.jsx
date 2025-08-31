@@ -43,21 +43,27 @@ const DevToResources = () => {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      {/* Title & Search */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
-        <h3 className="font-extrabold text-3xl text-center sm:text-left text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 mb-4 sm:mb-0">
-          ✍️ Dev.to Resources
-        </h3>
+      {/* 🌟 Heading */}
+      <h3 className="font-extrabold text-3xl text-center text-transparent bg-clip-text 
+        bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600
+        dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 mb-6">
+        ✍️ Dev.to Resources
+      </h3>
+
+      {/* 🔍 Search Bar */}
+      <div className="flex justify-center mb-10">
         <input
           type="text"
           placeholder="Search articles..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="px-4 py-2 w-full sm:w-72 border border-gray-300 dark:border-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white"
+          className="px-4 py-3 w-full sm:w-96 border border-gray-300 dark:border-gray-700 
+          rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 
+          dark:bg-gray-800 dark:text-white"
         />
       </div>
 
-      {/* Loader */}
+      {/* 📦 Loader */}
       {loading ? (
         <div className="flex justify-center items-center h-32">
           <div className="animate-spin h-10 w-10 border-t-4 border-indigo-600 border-solid rounded-full"></div>
@@ -69,7 +75,10 @@ const DevToResources = () => {
               {filteredResources.map((resource, index) => (
                 <div
                   key={index}
-                  className="rounded-xl border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-2xl transition duration-300 transform hover:-translate-y-1 flex flex-col p-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur-md"
+                  className="rounded-xl border border-gray-200 dark:border-gray-700 
+                  shadow-md hover:shadow-2xl transition duration-300 transform 
+                  hover:-translate-y-1 flex flex-col p-6 
+                  bg-white/70 dark:bg-gray-800/70 backdrop-blur-md"
                 >
                   <h4 className="font-semibold text-lg text-gray-800 dark:text-white mb-2">
                     {resource.title}
@@ -84,7 +93,9 @@ const DevToResources = () => {
                     href={resource.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-block px-4 py-2 text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:scale-105 transition-transform"
+                    className="mt-4 inline-block px-4 py-2 text-center 
+                    bg-gradient-to-r from-indigo-600 to-purple-600 
+                    text-white rounded-lg hover:scale-105 transition-transform"
                   >
                     Read More
                   </a>
