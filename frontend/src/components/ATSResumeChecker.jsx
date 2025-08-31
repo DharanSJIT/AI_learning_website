@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { 
   Upload, 
   FileText, 
@@ -28,7 +29,7 @@ const ATSResumeChecker = () => {
   const [error, setError] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const [uploadMethod, setUploadMethod] = useState("file");
-  const [activeTab, setActiveTab] = useState("analysis"); // "analysis" or "generator"
+  const [activeTab, setActiveTab] = useState("analysis");
 
   const handleFileChange = (selectedFile) => {
     if (selectedFile) {
@@ -127,7 +128,7 @@ const ATSResumeChecker = () => {
         improvements: analysis.recommendations || []
       };
 
-      const response = await fetch("http://localhost:4000/api/ats/generate-resume", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ats/generate-resume`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -152,13 +153,6 @@ const ATSResumeChecker = () => {
       setGenerating(false);
     }
   };
-
-  // const getScoreColor = (score) => {
-  //   if (score >= 80) return "text-green-600";
-  //   if (score >= 60) return "text-yellow-600";
-  //   if (score >= 40) return "text-orange-600";
-  //   return "text-red-600";
-  // };
 
   const getScoreBackground = (score) => {
     if (score >= 80) return "from-green-400 to-emerald-500";
@@ -185,7 +179,6 @@ const ATSResumeChecker = () => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
-      // You could add a toast notification here
       alert("Resume copied to clipboard!");
     });
   };
@@ -255,6 +248,27 @@ const ATSResumeChecker = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
       <div className="max-w-6xl mx-auto">
+        {/* Back to Dashboard Link */}
+        <Link
+          to="/home"
+          className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 font-medium transition-colors"
+        >
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          Back to Dashboard
+        </Link>
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 bg-white rounded-2xl px-6 py-3 shadow-lg mb-4">
