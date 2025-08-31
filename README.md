@@ -27,6 +27,7 @@ Icons: Lucide React, React Icons
 AI API: Google Gemini API
 
 Backend APIs: External APIs (YouTube, Dev.to, Medium, etc.)
+
 Deployment: Vercel + Render
 
 # Installation & Setup
