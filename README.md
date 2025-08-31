@@ -113,9 +113,5 @@ GitHub: DharanSJIT
 
 Phone : 9942548955
 
-# Acknowledgments 🙏
-Icons by Lucide and React Icons
-UI inspiration from various educational platforms
-API providers: YouTube, Udemy, Coursera, GitHub, Medium, Dev.to
-AI capabilities powered by Google Gemini API
+
 
