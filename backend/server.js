@@ -9,7 +9,7 @@ import fs from "fs";
 import mammoth from "mammoth";
 import { exec } from "child_process";
 import { promisify } from "util";
-import fetch from "node-fetch"; // <-- Add fetch for API key testing
+import fetch from "node-fetch";
 
 import geminiRouter from "./routes/gemini.js";
 import openaiRouter from "./routes/openai.js";
@@ -28,8 +28,7 @@ async function parsePDF(buffer) {
     try {
       const { stdout } = await execAsync(`pdftotext "${tempPath}" -`);
       text = stdout;
-    } catch (error) {
-      console.log("pdftotext not available, using basic extraction");
+    } catch {
       const pdfContent = buffer.toString("utf8");
       const textMatches = pdfContent.match(/stream\s*(.*?)\s*endstream/gs);
       if (textMatches) {
@@ -130,26 +129,9 @@ function analyzeResume(text) {
   text = text.toLowerCase();
 
   const keywords = [
-    "javascript",
-    "react",
-    "node",
-    "css",
-    "html",
-    "python",
-    "java",
-    "typescript",
-    "angular",
-    "vue",
-    "mongodb",
-    "sql",
-    "git",
-    "docker",
-    "aws",
-    "azure",
-    "kubernetes",
-    "microservices",
-    "api",
-    "rest",
+    "javascript","react","node","css","html","python","java","typescript",
+    "angular","vue","mongodb","sql","git","docker","aws","azure","kubernetes",
+    "microservices","api","rest",
   ];
 
   let score = 0;
@@ -166,10 +148,10 @@ function analyzeResume(text) {
   score += foundKeywords.length * 5;
 
   const sections = {
-    experience: ["experience", "work history", "employment", "professional experience"],
-    education: ["education", "academic", "degree", "university", "college"],
-    skills: ["skills", "technical skills", "competencies", "technologies"],
-    contact: ["email", "@", "phone", "contact", "linkedin"],
+    experience: ["experience","work history","employment","professional experience"],
+    education: ["education","academic","degree","university","college"],
+    skills: ["skills","technical skills","competencies","technologies"],
+    contact: ["email","@","phone","contact","linkedin"],
   };
 
   Object.entries(sections).forEach(([section, keywords]) => {
@@ -256,9 +238,7 @@ async function checkOpenAIKey() {
   if (!process.env.OPENAI_API_KEY) return "❌ Not set";
   try {
     const res = await fetch("https://api.openai.com/v1/models", {
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
+      headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
     });
     if (res.ok) return "✅ Active";
     return "❌ Invalid (" + res.status + ")";
@@ -273,9 +253,18 @@ async function checkOpenAIKey() {
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+// ---------- CORS Setup ----------
+app.use(
+  cors({
+    origin: "https://ai-powered-learning-webs.vercel.app", // allow your frontend
+    methods: ["GET", "POST", "OPTIONS"],
+    credentials: true,
+  })
+);
+
 app.use(express.json({ limit: "10mb" }));
 
+// ---------- Health Check ----------
 app.get("/health", async (req, res) => {
   const geminiStatus = await checkGeminiKey();
   const openaiStatus = await checkOpenAIKey();
@@ -288,10 +277,12 @@ app.get("/health", async (req, res) => {
   });
 });
 
+// ---------- Routes ----------
 app.use("/api/gemini", geminiRouter);
 app.use("/api/openai", openaiRouter);
 app.use("/api/ats", atsRouter);
 
+// ---------- Error Handling ----------
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
   res.status(500).json({
@@ -304,6 +295,7 @@ app.use("*", (req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
+// ---------- Graceful Shutdown ----------
 process.on("SIGINT", () => {
   console.log("\n🛑 Shutting down server gracefully...");
   process.exit(0);
@@ -313,6 +305,7 @@ process.on("SIGTERM", () => {
   process.exit(0);
 });
 
+// ---------- Start Server ----------
 app.listen(PORT, async () => {
   console.log(`🚀 Backend running on http://localhost:${PORT}`);
   console.log(`🏥 Health check at http://localhost:${PORT}/health`);
