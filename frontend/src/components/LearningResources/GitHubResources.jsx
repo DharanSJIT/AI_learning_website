@@ -11,7 +11,7 @@ const GitHubResources = () => {
 
   const fetchGitHubResources = async () => {
     setLoading(true);
-    // Example placeholder - Replace with GitHub API if needed
+    // Example placeholder data (replace with GitHub API if needed)
     const fetchedResources = [
       { 
         title: "React Repository", 
@@ -60,9 +60,9 @@ const GitHubResources = () => {
   );
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg max-w-7xl mx-auto">
-      <h3 className="font-bold text-3xl text-slate-800 dark:text-white mb-6 text-center">
-        GitHub Resources
+    <div className="p-6 max-w-7xl mx-auto">
+      <h3 className="font-extrabold text-4xl text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 dark:from-purple-300 dark:via-indigo-300 dark:to-blue-300 mb-10 drop-shadow-lg">
+         GitHub Resources
       </h3>
 
       {/* Search Bar */}
@@ -72,13 +72,13 @@ const GitHubResources = () => {
           placeholder="Search for repositories..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full max-w-2xl px-5 py-3 rounded-full border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600 bg-gray-50 dark:bg-gray-900 text-slate-800 dark:text-white text-lg"
+          className="w-full max-w-2xl px-5 py-3 rounded-full border border-gray-300 dark:border-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/70 dark:bg-gray-800/70 backdrop-blur-md text-gray-800 dark:text-gray-100 text-lg"
         />
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center">
-          <div className="animate-spin h-10 w-10 border-t-2 border-purple-600 border-solid rounded-full"></div>
+        <div className="flex justify-center items-center h-32">
+          <div className="animate-spin h-10 w-10 border-t-4 border-purple-600 border-solid rounded-full"></div>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -86,23 +86,25 @@ const GitHubResources = () => {
             filteredResources.map((resource, index) => (
               <div
                 key={index}
-                className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-md hover:shadow-2xl transition duration-300 cursor-pointer"
+                className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-2xl transition transform hover:-translate-y-1 bg-white/70 dark:bg-gray-800/70 backdrop-blur-md"
               >
-                {/* Thumbnail like Udemy */}
                 <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                  <img
-                    src={resource.image}
-                    alt={resource.title}
-                    className="w-full h-40 object-contain bg-gray-100 p-4"
-                  />
-                  <div className="p-4">
-                    <h4 className="font-semibold text-lg text-slate-800 dark:text-white mb-1 truncate">
+                  {/* Thumbnail */}
+                  <div className="flex justify-center items-center bg-gray-50 dark:bg-gray-900 h-40 p-4">
+                    <img
+                      src={resource.image}
+                      alt={resource.title}
+                      className="max-h-full object-contain"
+                    />
+                  </div>
+                  <div className="p-5">
+                    <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-2 truncate">
                       {resource.title}
                     </h4>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
                       {resource.desc}
                     </p>
-                    <span className="text-purple-600 font-medium text-sm">
+                    <span className="text-purple-600 dark:text-purple-400 font-medium text-sm">
                       View on GitHub →
                     </span>
                   </div>
