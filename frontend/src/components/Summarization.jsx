@@ -112,7 +112,7 @@ const Summarization = () => {
         <div className="max-w-4xl mx-auto space-y-8">
           
           {/* Model Selection Card */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
+          {/* <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-indigo-500" />
               Choose AI Model
@@ -182,7 +182,7 @@ const Summarization = () => {
                 </div>
               </label>
             </div>
-          </div>
+          </div> */}
 
           {/* Input Text Card */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">

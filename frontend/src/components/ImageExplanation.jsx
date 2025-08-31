@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import {
   Upload,
@@ -150,6 +151,27 @@ export default function ImageExplanation() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">
       <div className="max-w-6xl mx-auto">
+        {/* Back to Dashboard Link */}
+        <Link
+          to="/home" // update this route to your dashboard path if different
+          className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 font-medium transition-colors"
+        >
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          Back to Dashboard
+        </Link>
+
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
