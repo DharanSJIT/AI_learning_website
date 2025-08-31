@@ -39,6 +39,7 @@ npm or yarn
 Google Gemini API Key (https://aistudio.google.com/apikey)
 
 Environment Setup
+
 Create a .env file in both frontend and backend directories
 Add your Gemini API key to both files:
 
