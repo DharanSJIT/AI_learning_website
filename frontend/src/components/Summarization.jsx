@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Clipboard, ClipboardCheck, FileText, Sparkles, Zap } from "lucide-react";
+import { Clipboard, ClipboardCheck, FileText, Sparkles, Zap, Trash2, BarChart3 } from "lucide-react";
 
 const Summarization = () => {
   const [text, setText] = useState("");
@@ -74,250 +74,350 @@ const Summarization = () => {
     setError("");
   };
 
+  const summaryWordCount = summary ? summary.trim().split(/\s+/).filter(word => word.length > 0).length : 0;
+  const compressionRate = wordCount > 0 ? Math.round(((wordCount - summaryWordCount) / wordCount) * 100) : 0;
+
   return (
-    <div className="p-8 bg-gradient-to-br from-violet-50 via-indigo-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 rounded-3xl shadow-2xl max-w-5xl mx-auto mt-12 transition-all duration-500 border border-white/20 backdrop-blur-sm">
-      {/* Header with animated gradient text */}
-      <div className="text-center mb-8">
-        <h3 className="text-4xl font-bold bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-600 bg-clip-text text-transparent mb-2 animate-pulse">
-          ✨ AI Note Summarizer
-        </h3>
-        <p className="text-gray-600 dark:text-gray-300 text-sm">
-          Transform lengthy text into concise, meaningful summaries
-        </p>
-      </div>
-
-      {/* Enhanced Model Selection with glassmorphism */}
-      <div className="mb-8 flex justify-center gap-6">
-        <div className="flex gap-4 p-2 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md rounded-2xl border border-white/20 shadow-lg">
-          <label className="flex items-center gap-3 cursor-pointer px-4 py-2 rounded-xl transition-all duration-300 hover:bg-white/40 dark:hover:bg-gray-700/40">
-            <input
-              type="radio"
-              value="gemini"
-              checked={selectedModel === 'gemini'}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className="sr-only"
-            />
-            <div className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${
-              selectedModel === 'gemini' 
-                ? 'border-emerald-500 bg-emerald-500 shadow-emerald-500/50 shadow-lg' 
-                : 'border-gray-300 dark:border-gray-600'
-            }`}>
-              {selectedModel === 'gemini' && (
-                <div className="w-2 h-2 bg-white rounded-full m-0.5 animate-pulse" />
-              )}
-            </div>
-            <Sparkles className={`w-5 h-5 ${selectedModel === 'gemini' ? 'text-emerald-600' : 'text-gray-500'}`} />
-            <span className={`font-semibold ${selectedModel === 'gemini' ? 'text-emerald-700 dark:text-emerald-300' : 'text-gray-600 dark:text-gray-400'}`}>
-              Google Gemini
-            </span>
-          </label>
-
-          <label className="flex items-center gap-3 cursor-pointer px-4 py-2 rounded-xl transition-all duration-300 hover:bg-white/40 dark:hover:bg-gray-700/40">
-            <input
-              type="radio"
-              value="openai"
-              checked={selectedModel === 'openai'}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className="sr-only"
-            />
-            <div className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${
-              selectedModel === 'openai' 
-                ? 'border-blue-500 bg-blue-500 shadow-blue-500/50 shadow-lg' 
-                : 'border-gray-300 dark:border-gray-600'
-            }`}>
-              {selectedModel === 'openai' && (
-                <div className="w-2 h-2 bg-white rounded-full m-0.5 animate-pulse" />
-              )}
-            </div>
-            <Zap className={`w-5 h-5 ${selectedModel === 'openai' ? 'text-blue-600' : 'text-gray-500'}`} />
-            <span className={`font-semibold ${selectedModel === 'openai' ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>
-              OpenAI GPT
-            </span>
-          </label>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Back to Dashboard Button */}
+        <div className="mb-6">
+          <button 
+            onClick={() => window.history.back()}
+            className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200 group"
+          >
+            <svg 
+              className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Dashboard
+          </button>
         </div>
-      </div>
+        
+        {/* Enhanced Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            AI Text Summarizer
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Transform lengthy documents into concise, meaningful summaries using advanced AI technology
+          </p>
+        </div>
 
-      {/* Enhanced Input Section */}
-      <div className="mb-6">
-        <div className="relative group">
-          {/* Input Label and Stats */}
-          <div className="flex justify-between items-center mb-3">
-            <label className="flex items-center gap-2 text-lg font-semibold text-gray-700 dark:text-gray-300">
-              <FileText className="w-5 h-5 text-indigo-500" />
-              Your Text
-            </label>
-            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <span className="bg-white/50 dark:bg-gray-800/50 px-3 py-1 rounded-full backdrop-blur-sm border border-white/20">
-                {wordCount} words
-              </span>
-              {text && (
-                <button
-                  onClick={clearText}
-                  className="text-red-500 hover:text-red-700 transition-colors duration-200 font-medium"
-                >
-                  Clear
-                </button>
-              )}
+        <div className="max-w-4xl mx-auto space-y-8">
+          
+          {/* Model Selection Card */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-indigo-500" />
+              Choose AI Model
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className={`
+                flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all duration-200 border-2
+                ${selectedModel === 'gemini' 
+                  ? 'bg-green-50 border-green-300 text-green-800' 
+                  : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                }
+              `}>
+                <input
+                  type="radio"
+                  value="gemini"
+                  checked={selectedModel === 'gemini'}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="hidden"
+                />
+                <div className={`
+                  w-4 h-4 rounded-full border-2 transition-all
+                  ${selectedModel === 'gemini' 
+                    ? 'border-green-500 bg-green-500' 
+                    : 'border-gray-300'
+                  }
+                `}>
+                  {selectedModel === 'gemini' && (
+                    <div className="w-2 h-2 bg-white rounded-full m-0.5" />
+                  )}
+                </div>
+                <Sparkles className={`w-5 h-5 ${selectedModel === 'gemini' ? 'text-green-600' : 'text-gray-500'}`} />
+                <div>
+                  <div className="font-semibold">Google Gemini</div>
+                  <div className="text-xs opacity-70">Advanced & Free</div>
+                </div>
+              </label>
+
+              <label className={`
+                flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all duration-200 border-2
+                ${selectedModel === 'openai' 
+                  ? 'bg-blue-50 border-blue-300 text-blue-800' 
+                  : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                }
+              `}>
+                <input
+                  type="radio"
+                  value="openai"
+                  checked={selectedModel === 'openai'}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="hidden"
+                />
+                <div className={`
+                  w-4 h-4 rounded-full border-2 transition-all
+                  ${selectedModel === 'openai' 
+                    ? 'border-blue-500 bg-blue-500' 
+                    : 'border-gray-300'
+                  }
+                `}>
+                  {selectedModel === 'openai' && (
+                    <div className="w-2 h-2 bg-white rounded-full m-0.5" />
+                  )}
+                </div>
+                <Zap className={`w-5 h-5 ${selectedModel === 'openai' ? 'text-blue-600' : 'text-gray-500'}`} />
+                <div>
+                  <div className="font-semibold">OpenAI GPT</div>
+                  <div className="text-xs opacity-70">Powerful & Precise</div>
+                </div>
+              </label>
             </div>
           </div>
 
-          {/* Enhanced Textarea with custom scrollbar */}
-          <div className="relative">
-            <textarea
-              value={text}
-              onChange={handleTextChange}
-              placeholder="✍️ Paste or type your long text here... (articles, notes, documents, etc.)"
-              rows="8"
-              className="
-                w-full p-6 rounded-2xl 
-                border-2 border-transparent
-                bg-white/70 dark:bg-gray-800/70 
-                backdrop-blur-md
-                text-gray-800 dark:text-gray-200 
-                placeholder-gray-500 dark:placeholder-gray-400
-                text-base leading-relaxed
-                focus:outline-none 
-                focus:ring-4 focus:ring-indigo-500/20 
-                focus:border-indigo-400/50
-                resize-none 
-                shadow-lg
-                transition-all duration-300
-                hover:bg-white/80 dark:hover:bg-gray-800/80
-                hover:shadow-xl
-                
-                /* Custom Scrollbar Styles */
-                scrollbar-thin 
-                scrollbar-track-transparent 
-                scrollbar-thumb-indigo-300 dark:scrollbar-thumb-gray-600
-                hover:scrollbar-thumb-indigo-400 dark:hover:scrollbar-thumb-gray-500
-              "
-              style={{
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#a5b4fc transparent'
-              }}
-            />
-            
-            {/* Gradient border effect on focus */}
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none -z-10 blur-sm" />
+          {/* Input Text Card */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-indigo-500" />
+                Input Text
+              </h3>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
+                    {wordCount} words
+                  </span>
+                  <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-medium">
+                    {text.length} chars
+                  </span>
+                </div>
+                {text && (
+                  <button
+                    onClick={clearText}
+                    className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors font-medium text-sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="relative">
+              <textarea
+                value={text}
+                onChange={handleTextChange}
+                placeholder="📝 Paste your article, document, or any long text here...&#10;&#10;Perfect for:&#10;• Research papers and articles&#10;• Meeting notes and reports&#10;• News articles and blogs&#10;• Academic papers&#10;• Any lengthy content you need summarized"
+                className="
+                  w-full p-6 
+                  bg-gradient-to-br from-gray-50 to-white
+                  border-2 border-gray-200
+                  rounded-xl
+                  focus:outline-none 
+                  focus:ring-4 focus:ring-blue-500/20
+                  focus:border-blue-400
+                  text-gray-800
+                  placeholder-gray-500
+                  resize-none
+                  transition-all duration-200
+                  font-mono text-sm
+                  leading-relaxed
+                "
+                style={{ 
+                  minHeight: '400px',
+                  height: 'auto'
+                }}
+                rows="20"
+              />
+              
+              {/* Character limit indicator */}
+              {text.length > 0 && (
+                <div className="absolute bottom-4 right-4">
+                  <div className={`
+                    px-3 py-1 rounded-full text-xs font-medium
+                    ${text.length > 10000 
+                      ? 'bg-red-100 text-red-600' 
+                      : text.length > 5000
+                      ? 'bg-yellow-100 text-yellow-700'
+                      : 'bg-green-100 text-green-600'
+                    }
+                  `}>
+                    {text.length > 10000 ? '⚠️ ' : text.length > 5000 ? '⚡ ' : '✅ '}
+                    {text.length.toLocaleString()}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Action Button */}
+            <button
+              onClick={summarizeText}
+              disabled={loading || !text.trim()}
+              className={`
+                w-full mt-6 py-4 px-6 rounded-xl font-semibold text-lg
+                transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]
+                shadow-lg hover:shadow-xl
+                flex items-center justify-center gap-3
+                ${loading || !text.trim()
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+                  : selectedModel === 'gemini'
+                  ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                  : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                }
+              `}
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  Analyzing with {selectedModel.charAt(0).toUpperCase() + selectedModel.slice(1)}...
+                </>
+              ) : (
+                <>
+                  {selectedModel === 'gemini' ? <Sparkles className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
+                  Summarize with {selectedModel.charAt(0).toUpperCase() + selectedModel.slice(1)}
+                </>
+              )}
+            </button>
           </div>
 
-          {/* Character limit indicator */}
-          {text.length > 0 && (
-            <div className="mt-2 flex justify-end">
-              <div className={`text-xs px-2 py-1 rounded-full ${
-                text.length > 10000 
-                  ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
-                  : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-              }`}>
-                {text.length.toLocaleString()} characters
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 rounded-xl p-6 shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">!</span>
+                </div>
+                <p className="text-red-700 font-medium">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {loading && (
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                  <svg className="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Processing Your Text</h3>
+                <p className="text-gray-600">AI is analyzing and condensing your content...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Summary Result */}
+          {summary && !loading && (
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
+              
+              {/* Summary Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                    <BarChart3 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-800">Summary Generated</h3>
+                    <p className="text-sm text-gray-500">via {selectedModel.charAt(0).toUpperCase() + selectedModel.slice(1)} AI</p>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={handleCopy}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200
+                    ${copied 
+                      ? 'bg-green-100 text-green-700 shadow-green-500/20' 
+                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200 shadow-blue-500/20'
+                    } shadow-lg
+                  `}
+                >
+                  {copied ? (
+                    <>
+                      <ClipboardCheck className="w-4 h-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Clipboard className="w-4 h-4" />
+                      Copy
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Summary Stats */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-blue-50 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">{wordCount}</div>
+                  <div className="text-xs text-blue-500 font-medium">Original Words</div>
+                </div>
+                <div className="bg-green-50 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">{summaryWordCount}</div>
+                  <div className="text-xs text-green-500 font-medium">Summary Words</div>
+                </div>
+                <div className="bg-purple-50 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-bold text-purple-600">{compressionRate}%</div>
+                  <div className="text-xs text-purple-500 font-medium">Compressed</div>
+                </div>
+              </div>
+
+              {/* Summary Content - Shows entirely without scrollbars */}
+              <div className="bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100 rounded-xl p-6">
+                <div className="text-gray-800 leading-relaxed whitespace-pre-wrap select-text text-base">
+                  {summary}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!summary && !loading && !error && (
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-12">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-gray-100 to-gray-200 rounded-2xl mb-6">
+                  <FileText className="w-10 h-10 text-gray-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-700 mb-4">Ready for Summarization</h3>
+                <p className="text-gray-500 max-w-md mx-auto leading-relaxed">
+                  Paste your text above and click summarize to see your AI-generated summary here.
+                </p>
+                
+                {/* Feature highlights */}
+                <div className="grid grid-cols-1 gap-3 mt-8 text-sm text-gray-600">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>Supports articles, papers, and documents</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>Multiple AI models available</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span>One-click copy functionality</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
         </div>
+
       </div>
-
-      {/* Enhanced Summarize Button with animated gradient */}
-      <button
-        onClick={summarizeText}
-        disabled={loading || !text}
-        className={`
-          mt-6 w-full py-4 rounded-2xl font-bold text-white text-lg
-          transition-all duration-500 transform hover:scale-[1.02] active:scale-[0.98]
-          shadow-lg hover:shadow-2xl
-          relative overflow-hidden group
-          ${loading || !text
-            ? "bg-gray-400 cursor-not-allowed shadow-none"
-            : "bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 hover:from-indigo-700 hover:via-purple-700 hover:to-cyan-700"
-          }
-        `}
-      >
-        {/* Animated background gradient */}
-        {!loading && text && (
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 via-purple-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        )}
-        
-        <span className="relative z-10">
-          {loading ? (
-            <span className="flex items-center justify-center gap-3">
-              <div className="animate-spin h-6 w-6 border-3 border-white border-t-transparent rounded-full"></div>
-              <span>Summarizing with {selectedModel.toUpperCase()}...</span>
-            </span>
-          ) : (
-            <span className="flex items-center justify-center gap-2">
-              <Zap className="w-5 h-5" />
-              Summarize with {selectedModel.toUpperCase()}
-            </span>
-          )}
-        </span>
-      </button>
-
-      {/* Enhanced Error Message */}
-      {error && (
-        <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-          <p className="text-red-600 dark:text-red-400 font-medium text-center">{error}</p>
-        </div>
-      )}
-
-      {/* Enhanced Summary Box with glassmorphism */}
-      {summary && (
-        <div className="mt-8 p-8 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl shadow-2xl relative border border-white/20 transition-all duration-500 hover:bg-white/70 dark:hover:bg-gray-800/70">
-          <h4 className="font-bold text-xl text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
-              <FileText className="w-5 h-5 text-white" />
-            </div>
-            Summary 
-            <span className="text-sm bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 px-3 py-1 rounded-full font-normal">
-              via {selectedModel.toUpperCase()}
-            </span>
-          </h4>
-          
-          <div className="relative">
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base whitespace-pre-wrap">
-              {summary}
-            </p>
-          </div>
-
-          {/* Enhanced Copy Button */}
-          <button
-            onClick={handleCopy}
-            className={`absolute top-4 right-4 p-3 rounded-xl transition-all duration-300 ${
-              copied 
-                ? 'bg-green-500 text-white shadow-green-500/25' 
-                : 'bg-white/80 dark:bg-gray-700/80 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-600'
-            } shadow-lg hover:shadow-xl`}
-            title="Copy to clipboard"
-          >
-            {copied ? (
-              <ClipboardCheck className="w-5 h-5" />
-            ) : (
-              <Clipboard className="w-5 h-5" />
-            )}
-          </button>
-        </div>
-      )}
-
-      {/* Add custom CSS for webkit scrollbar */}
-      <style jsx>{`
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 8px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: #a5b4fc;
-          border-radius: 4px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: #8b5cf6;
-        }
-        .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: #4b5563;
-        }
-        .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: #6b7280;
-        }
-      `}</style>
     </div>
   );
 };
