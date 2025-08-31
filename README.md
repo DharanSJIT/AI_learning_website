@@ -10,9 +10,13 @@ The AI-Powered Learning Website is an interactive learning platform that integra
 ❓ AI Quiz Generator – Generate and answer quizzes instantly
 
 📖 Learning Resources – Curated materials from YouTube, Udemy, Coursera, GitHub, Medium, & Dev.to
+
 📝 Document Analyzer – Upload text/documents and extract intelligent insights
+
 🔍 ATS Resume Checker – Check your resume against ATS filters
+
 ✅ Task Management – To-Do List, Progress Tracker, and Bookbank for resources
+
 🌙 Modern UI/UX – Responsive layout with light/dark mode
 
 🛠️ Tech Stack
@@ -80,17 +84,12 @@ Never commit your .env files to version control
 🌐 Live Demo
 👉 AI Learning Hub
 
-🎯 Key Highlights
-
-🚀 AI-Powered Learning Hub is an all-in-one platform built with React + TailwindCSS.
-🎓 Explore curated resources from YouTube, Udemy, Coursera, GitHub, Medium & Dev.to.
-❓ Create and attempt AI-powered quizzes tailored to any chosen topic.
-📊 Track progress, manage notes, and enhance learning with interactive tools.
-🌙 Responsive, modern, and optimized with dark/light mode support.
 
 🤝 Contributing
 We welcome contributions! Please feel free to submit a Pull Request.
+
 Fork the project
+
 Create your feature branch (git checkout -b feature/AmazingFeature)
 Commit 
 Push to the branch (git push origin feature/AmazingFeature)
