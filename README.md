@@ -1,9 +1,9 @@
-# AI-Powered Learning Website
+# AI-Powered Learning Website 📚
 
-# Overview
+# Overview 🚀
 The AI-Powered Learning Website is an interactive learning platform that integrates multiple learning and productivity tools. It enables learners to explore curated learning resources, generate AI-powered quizzes, track their progress, and manage their educational journey seamlessly in one place.
 
-# Features
+# Features ✨
 
 🎓 Learning Path – Personalized plan for learners
 
@@ -38,7 +38,7 @@ npm or yarn
 
 Google Gemini API Key (https://aistudio.google.com/apikey)
 
-Environment Setup
+# Environment Setup 🎯
 
 Create a .env file in both frontend and backend directories
 Add your Gemini API key to both files:
@@ -65,7 +65,7 @@ npm install
 # Run locally
 npm run dev
 
-Backend Setup
+
 
 # Navigate to backend directory
 cd backend
@@ -76,7 +76,8 @@ npm install
 # Run locally
 node server.js
 
-🔑 API Key Configuration
+# API Key Configuration 🔑
+
 To use the AI features, you need to obtain a Google Gemini API key:
 
 Visit Google AI Studio
@@ -84,11 +85,11 @@ Create an API key
 Replace your_gemini_api_key_here in both .env files with your actual API key
 Never commit your .env files to version control
 
-🌐 Live Demo
-👉 AI Learning Hub
+# Live Demo 🌐 
+👉 https://ai-powered-learning-webs.vercel.app/
 
 
-🤝 Contributing
+# Contributing 🤝
 We welcome contributions! Please feel free to submit a Pull Request.
 
 Fork the project
@@ -98,17 +99,17 @@ Commit
 Push to the branch (git push origin feature/AmazingFeature)
 Open a Pull Request
 
-📄 License
+# License 📄
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-📞 Contact
+# Contact 📞
 For any queries, please reach out to us at:
 
 Email: dharan.mj05@gmail.com
 GitHub: DharanSJIT
 Phone : 9942548955
 
-🙏 Acknowledgments
+# Acknowledgments 🙏
 Icons by Lucide and React Icons
 UI inspiration from various educational platforms
 API providers: YouTube, Udemy, Coursera, GitHub, Medium, Dev.to
