@@ -6,7 +6,9 @@ The AI-Powered Learning Website is an interactive learning platform that integra
 ✨ Features
 
 🎓 Learning Path – Personalized plan for learners
+
 ❓ AI Quiz Generator – Generate and answer quizzes instantly
+
 📖 Learning Resources – Curated materials from YouTube, Udemy, Coursera, GitHub, Medium, & Dev.to
 📝 Document Analyzer – Upload text/documents and extract intelligent insights
 🔍 ATS Resume Checker – Check your resume against ATS filters
