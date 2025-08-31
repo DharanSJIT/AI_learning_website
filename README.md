@@ -64,8 +64,9 @@ npm install
 
 # Run locally
 npm run dev
+
 Backend Setup
-bash
+
 # Navigate to backend directory
 cd backend
 
