@@ -241,9 +241,7 @@ Do NOT use markdown (** or *), just plain text.`;
                 )}
               </button>
             </div>
-            <p className="text-sm text-gray-500 mt-2">
-              💡 Press Enter or click Generate to create your learning path
-            </p>
+           
           </div>
 
           {/* Results Section */}
