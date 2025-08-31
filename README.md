@@ -34,6 +34,7 @@ Deployment: Vercel + Render
 
 Prerequisites
 Node.js (v14 or higher)
+
 npm or yarn
 
 Google Gemini API Key (https://aistudio.google.com/apikey)
@@ -80,8 +81,9 @@ node server.js
 
 To use the AI features, you need to obtain a Google Gemini API key:
 
-Visit Google AI Studio
-Create an API key
+Visit Google AI Studio(https://aistudio.google.com/apikey).
+
+Create an API key and 
 Replace your_gemini_api_key_here in both .env files with your actual API key
 Never commit your .env files to version control
 
@@ -106,7 +108,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 For any queries, please reach out to us at:
 
 Email: dharan.mj05@gmail.com
+
 GitHub: DharanSJIT
+
 Phone : 9942548955
 
 # Acknowledgments 🙏
