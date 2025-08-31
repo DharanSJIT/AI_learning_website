@@ -1,9 +1,9 @@
-#📚 AI-Powered Learning Website
+# AI-Powered Learning Website
 
 # Overview
 The AI-Powered Learning Website is an interactive learning platform that integrates multiple learning and productivity tools. It enables learners to explore curated learning resources, generate AI-powered quizzes, track their progress, and manage their educational journey seamlessly in one place.
 
-#✨ Features
+# Features
 
 🎓 Learning Path – Personalized plan for learners
 
@@ -19,7 +19,7 @@ The AI-Powered Learning Website is an interactive learning platform that integra
 
 🌙 Modern UI/UX – Responsive layout with light/dark mode
 
-🛠️ Tech Stack
+ # Tech Stack
 
 Frontend: React + Vite
 Styling: TailwindCSS
@@ -29,7 +29,7 @@ AI API: Google Gemini API
 Backend APIs: External APIs (YouTube, Dev.to, Medium, etc.)
 Deployment: Vercel + Render
 
-⚡ Installation & Setup
+# Installation & Setup
 
 Prerequisites
 Node.js (v14 or higher)
