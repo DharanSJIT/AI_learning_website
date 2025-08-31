@@ -36,7 +36,7 @@ Prerequisites
 Node.js (v14 or higher)
 npm or yarn
 
-Google Gemini API Key (Get it here)
+Google Gemini API Key (https://aistudio.google.com/apikey)
 
 Environment Setup
 Create a .env file in both frontend and backend directories
