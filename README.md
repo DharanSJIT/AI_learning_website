@@ -22,8 +22,11 @@ The AI-Powered Learning Website is an interactive learning platform that integra
  # Tech Stack 🛠️
 
 Frontend: React + Vite
+
 Styling: TailwindCSS
+
 Icons: Lucide React, React Icons
+
 AI API: Google Gemini API
 
 Backend APIs: External APIs (YouTube, Dev.to, Medium, etc.)
