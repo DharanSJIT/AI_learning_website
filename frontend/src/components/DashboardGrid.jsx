@@ -152,7 +152,7 @@ export default function DashboardGrid({ user }) {
   ];
 
   const featuredTools = tools.filter(tool => tool.featured);
-  const regularTools = tools.filter(tool => !tool.featured);
+
 
   const stats = [
     { label: "Tools Available", value: "12", icon: Zap },

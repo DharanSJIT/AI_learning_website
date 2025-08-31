@@ -8,7 +8,7 @@ const Summarization = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('gemini');
+  const [selectedModel] = useState('gemini');
   const [wordCount, setWordCount] = useState(0);
 
   const handleTextChange = (e) => {

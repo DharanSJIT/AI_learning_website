@@ -152,7 +152,7 @@ Note: This analysis is generated using content structure and length indicators. 
     await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 2000));
     
     const wordCount = content.split(/\s+/).length;
-    const topics = ['main concept', 'key principle', 'important detail', 'supporting evidence', 'conclusion'];
+    
     
     return `Generated Questions
 
