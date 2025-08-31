@@ -23,7 +23,6 @@ export default function ImageExplanation() {
   const [previewUrl, setPreviewUrl] = useState("");
   const fileInputRef = useRef(null);
 
-  // Use VITE_ prefix for environment variables with Vite
   const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
   const handleFileUpload = (e) => {
@@ -33,7 +32,7 @@ export default function ImageExplanation() {
       const reader = new FileReader();
       reader.onload = (e) => setPreviewUrl(e.target.result);
       reader.readAsDataURL(selectedFile);
-      setUrl(""); // Clear URL if file is uploaded
+      setUrl("");
     }
   };
 
@@ -104,7 +103,6 @@ export default function ImageExplanation() {
 
       const rawText = await result.response.text();
 
-      // Clean response text from markdown and bullets
       const cleanedText = rawText
         .replace(/^\s*[*-]\s?/gm, "")
         .replace(/\*\*(.*?)\*\*/g, "$1");
@@ -151,9 +149,8 @@ export default function ImageExplanation() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Back to Dashboard Link */}
         <Link
-          to="/home" // update this route to your dashboard path if different
+          to="/home"
           className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 font-medium transition-colors"
         >
           <svg
@@ -172,7 +169,6 @@ export default function ImageExplanation() {
           Back to Dashboard
         </Link>
 
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Image Analyzer
@@ -182,90 +178,108 @@ export default function ImageExplanation() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Left Panel */}
-          <div className="space-y-6">
-            {/* Image Input */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <Image className="w-5 h-5 text-indigo-600" />
-                Image Input
-              </h3>
+        {/* First Row: Image Input + Prompt */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          {/* Image Input */}
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <Image className="w-5 h-5 text-indigo-600" />
+              Image Input
+            </h3>
 
-              {/* File Upload */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Image File
-                </label>
-                <div
-                  className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600">Click to upload or drag and drop</p>
-                  <p className="text-sm text-gray-400 mt-1">
-                    PNG, JPG, GIF up to 10MB
-                  </p>
-                </div>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept="image/*"
-                  className="hidden"
-                />
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Upload Image File
+              </label>
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600">Click to upload or drag and drop</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  PNG, JPG, GIF up to 10MB
+                </p>
               </div>
-
-              {/* URL Input */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Or Enter Image URL
-                </label>
-                <input
-                  type="url"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  placeholder="https://example.com/image.jpg"
-                  value={url}
-                  onChange={handleUrlChange}
-                />
-              </div>
-            </div>
-
-            {/* Prompt Input */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <Eye className="w-5 h-5 text-indigo-600" />
-                Analysis Prompt
-              </h3>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quick Prompts
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {quickPrompts.map((quickPrompt, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setPrompt(quickPrompt)}
-                      className="px-3 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-full hover:bg-indigo-200 transition-colors"
-                    >
-                      {quickPrompt.split(" ").slice(0, 4).join(" ")}...
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <textarea
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
-                rows="4"
-                placeholder="Enter your custom prompt here..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept="image/*"
+                className="hidden"
               />
             </div>
 
-            {/* Buttons */}
-            <div className="flex gap-3">
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Or Enter Image URL
+              </label>
+              <input
+                type="url"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                placeholder="https://example.com/image.jpg"
+                value={url}
+                onChange={handleUrlChange}
+              />
+            </div>
+          </div>
+
+          {/* Analysis Prompt */}
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <Eye className="w-5 h-5 text-indigo-600" />
+              Analysis Prompt
+            </h3>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Quick Prompts
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {quickPrompts.map((quickPrompt, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setPrompt(quickPrompt)}
+                    className="px-3 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-full hover:bg-indigo-200 transition-colors"
+                  >
+                    {quickPrompt.split(" ").slice(0, 4).join(" ")}...
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <textarea
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+              rows="4"
+              placeholder="Enter your custom prompt here..."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Second Row: Preview + AI Response */}
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Image Preview */}
+          {previewUrl && (
+            <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Image Preview
+              </h3>
+              <div className="rounded-xl overflow-hidden bg-gray-100">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="w-full h-[320px] object-cover"
+                  onError={() => setPreviewUrl("")}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* AI Analysis */}
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-3 mb-3">
               <button
                 onClick={runExplain}
                 disabled={loading || (!url && !file) || !prompt}
@@ -290,28 +304,7 @@ export default function ImageExplanation() {
                 Clear
               </button>
             </div>
-          </div>
 
-          {/* Right Panel */}
-          <div className="space-y-6">
-            {/* Preview */}
-            {previewUrl && (
-              <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                  Image Preview
-                </h3>
-                <div className="rounded-xl overflow-hidden bg-gray-100">
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="w-full h-64 object-cover"
-                    onError={() => setPreviewUrl("")}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* AI Response */}
             {(response || loading) && (
               <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
