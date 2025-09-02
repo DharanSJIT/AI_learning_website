@@ -253,28 +253,88 @@ async function checkOpenAIKey() {
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ---------- CORS Setup ----------
+// ---------- CORS Setup (FIXED) ----------
+const allowedOrigins = [
+  'https://ai-powered-learning-webs.vercel.app', // Production frontend
+  'http://localhost:5173', // Vite dev server
+  'http://localhost:3000', // Alternative local port
+  'http://localhost:5174', // Alternative Vite port
+  'http://127.0.0.1:5173', // Alternative localhost format
+];
+
+// Add environment-specific origins
+if (process.env.NODE_ENV === 'development') {
+  // Allow all localhost ports in development
+  allowedOrigins.push(/^http:\/\/localhost:\d+$/);
+  allowedOrigins.push(/^http:\/\/127\.0\.0\.1:\d+$/);
+}
+
 app.use(
   cors({
-    origin: "https://ai-powered-learning-webs.vercel.app", // allow your frontend
-    methods: ["GET", "POST", "OPTIONS"],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      // Check if origin is in allowed list
+      const isAllowed = allowedOrigins.some(allowedOrigin => {
+        if (typeof allowedOrigin === 'string') {
+          return allowedOrigin === origin;
+        }
+        // Handle regex patterns
+        return allowedOrigin.test(origin);
+      });
+      
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.log(`🚫 CORS blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     credentials: true,
   })
 );
 
+// Handle preflight requests
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.sendStatus(200);
+});
+
 app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // ---------- Health Check ----------
-app.get("/health", async (req, res) => {
-  const geminiStatus = await checkGeminiKey();
-  const openaiStatus = await checkOpenAIKey();
+app.get("/", (req, res) => {
   res.json({
-    status: "OK",
+    message: "AI Learning Backend API",
+    status: "Running",
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || "development",
-    geminiKey: geminiStatus,
-    openaiKey: openaiStatus,
   });
+});
+
+app.get("/health", async (req, res) => {
+  try {
+    const geminiStatus = await checkGeminiKey();
+    const openaiStatus = await checkOpenAIKey();
+    res.json({
+      status: "OK",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || "development",
+      geminiKey: geminiStatus,
+      openaiKey: openaiStatus,
+      allowedOrigins: process.env.NODE_ENV === 'development' ? allowedOrigins.filter(o => typeof o === 'string') : ['Production URLs'],
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "ERROR",
+      timestamp: new Date().toISOString(),
+      error: error.message,
+    });
+  }
 });
 
 // ---------- Routes ----------
@@ -285,6 +345,15 @@ app.use("/api/ats", atsRouter);
 // ---------- Error Handling ----------
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
+  
+  // Handle CORS errors specifically
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      error: "CORS: Origin not allowed",
+      message: "Your request origin is not in the allowed list",
+    });
+  }
+  
   res.status(500).json({
     error: "Internal server error",
     details: process.env.NODE_ENV === "development" ? err.message : undefined,
@@ -292,7 +361,16 @@ app.use((err, req, res, next) => {
 });
 
 app.use("*", (req, res) => {
-  res.status(404).json({ error: "Route not found" });
+  res.status(404).json({ 
+    error: "Route not found",
+    availableRoutes: [
+      "GET /",
+      "GET /health",
+      "POST /api/gemini/*",
+      "POST /api/openai/*",
+      "POST /api/ats/ats-check"
+    ]
+  });
 });
 
 // ---------- Graceful Shutdown ----------
@@ -309,13 +387,23 @@ process.on("SIGTERM", () => {
 app.listen(PORT, async () => {
   console.log(`🚀 Backend running on http://localhost:${PORT}`);
   console.log(`🏥 Health check at http://localhost:${PORT}/health`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
 
+  // Create uploads directory if it doesn't exist
   if (!fs.existsSync("uploads")) {
-    fs.mkdirSync("uploads");
+    fs.mkdirSync("uploads", { recursive: true });
     console.log("📁 Created uploads directory");
   }
 
+  // Check API keys on startup
   console.log("🔑 Checking API keys...");
   console.log("Gemini API Key:", await checkGeminiKey());
   console.log("OpenAI API Key:", await checkOpenAIKey());
+  
+  // Log allowed origins for debugging
+  console.log("🔐 CORS allowed origins:", 
+    process.env.NODE_ENV === 'development' 
+      ? allowedOrigins.filter(o => typeof o === 'string')
+      : ['Production URLs only']
+  );
 });
