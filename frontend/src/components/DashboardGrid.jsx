@@ -33,8 +33,9 @@ export default function DashboardGrid({ user }) {
   const getGreeting = () => {
     const hour = currentTime.getHours();
     if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
+    if (hour < 16) return "Good afternoon";
+    if (hour < 20) return "Good evening";
+    return "Good night";
   };
 
   const tools = [
