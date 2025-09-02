@@ -189,7 +189,7 @@ export default function DashboardGrid({ user }) {
                   Ready to continue your learning journey? Explore our comprehensive suite of AI-powered tools designed to enhance your education and career.
                 </p>
                 <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                  <span>📅 {currentTime.toLocaleDateString('en-US', { 
+                  <span> {currentTime.toLocaleDateString('en-US', { 
                     weekday: 'long', 
                     year: 'numeric', 
                     month: 'long', 
