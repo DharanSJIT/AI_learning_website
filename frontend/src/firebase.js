@@ -1,9 +1,17 @@
 // src/firebase.js
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut 
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
+// Firebase Config from .env
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -17,14 +25,40 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// ✅ Exports
+// 🔑 Auth
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
+// 📦 Firestore
 export const db = getFirestore(app);
 
-// Analytics (optional)
+// 📊 Analytics (optional)
 let analytics;
 if (typeof window !== "undefined") {
   analytics = getAnalytics(app);
 }
 export { analytics };
+
+// ======================
+// 🔥 Utility Functions
+// ======================
+
+// Email/Password Sign Up
+export const signUpWithEmail = (email, password) => {
+  return createUserWithEmailAndPassword(auth, email, password);
+};
+
+// Email/Password Login
+export const loginWithEmail = (email, password) => {
+  return signInWithEmailAndPassword(auth, email, password);
+};
+
+// Google Sign In
+export const signInWithGoogle = () => {
+  return signInWithPopup(auth, googleProvider);
+};
+
+// Logout
+export const logout = () => {
+  return signOut(auth);
+};
