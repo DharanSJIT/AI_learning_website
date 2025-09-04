@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react"; // 1. Import useEffect
 import * as mammoth from "mammoth";
 import { 
   Upload, 
@@ -29,6 +29,11 @@ export default function DocumentAnalyzer() {
   const [copied, setCopied] = useState({ analysis: false, questions: false });
   const [documentInfo, setDocumentInfo] = useState({ name: "", type: "", size: "" });
   const fileInputRef = useRef(null);
+
+  // 2. Add useEffect to scroll to top on component mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Mock API function to simulate AI analysis
   const simulateAIAnalysis = async (prompt, content) => {
@@ -83,12 +88,10 @@ Note: This analysis is generated using content structure and length indicators. 
 
   const extractContent = async (file) => {
     try {
-      // Fix: Use functional update to ensure we get the latest state
       setLoading(prev => ({ ...prev, extract: true }));
       let content = "";
 
       if (file.type === "application/pdf") {
-        // For PDF files - needs setup
         content = "PDF content extraction requires additional setup. Please use text files or URLs for now.";
       } else if (file.type.includes("word") || file.name.endsWith('.docx')) {
         const arrayBuffer = await file.arrayBuffer();
@@ -100,17 +103,15 @@ Note: This analysis is generated using content structure and length indicators. 
         content = "Unsupported file type. Please use PDF, Word, or text files.";
       }
 
-      // Clean up asterisks and normalize bullet points
       const cleanedContent = content
-        .replace(/^\*\s?/gm, "- ") // Replace lines starting with "* " to "- "
-        .replace(/\*/g, "");       // Remove remaining asterisks
+        .replace(/^\*\s?/gm, "- ")
+        .replace(/\*/g, "");
 
       setDocumentContent(cleanedContent);
     } catch (error) {
       console.error("Error extracting content:", error);
       setDocumentContent("Error extracting content from file.");
     } finally {
-      // Fix: Use functional update
       setLoading(prev => ({ ...prev, extract: false }));
     }
   };
@@ -119,19 +120,15 @@ Note: This analysis is generated using content structure and length indicators. 
     if (!url) return;
     
     try {
-      // Fix: Use functional update
       setLoading(prev => ({ ...prev, extract: true }));
-      
-      // Simple URL content extraction (you might need a proxy for CORS)
       const response = await fetch(url);
       const text = await response.text();
       
-      // Basic HTML content extraction
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, 'text/html');
       const content = doc.body?.textContent || text;
       
-      setDocumentContent(content.substring(0, 10000)); // Limit content
+      setDocumentContent(content.substring(0, 10000));
       setDocumentInfo({
         name: url.split('/').pop() || "Web Content",
         type: "URL",
@@ -141,18 +138,13 @@ Note: This analysis is generated using content structure and length indicators. 
       console.error("Error fetching URL:", error);
       setDocumentContent("Error: Could not fetch content from URL. Please check CORS settings or use a different URL.");
     } finally {
-      // Fix: Use functional update
       setLoading(prev => ({ ...prev, extract: false }));
     }
   };
 
-  // Mock question generation function
   const simulateQuestionGeneration = async (prompt, content) => {
-    // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 2000));
-    
     const wordCount = content.split(/\s+/).length;
-    
     
     return `Generated Questions
 
@@ -217,40 +209,30 @@ Note: These questions are generated based on content analysis. For subject-speci
 
   const runAnalysis = async () => {
     if (!documentContent) return;
-
     try {
-      // Fix: Use functional update and clear response first
       setLoading(prev => ({ ...prev, analysis: true }));
-      setAnalysisResponse(""); // Clear previous response
-
-      // Use mock analysis instead of real API
+      setAnalysisResponse("");
       const analysisResult = await simulateAIAnalysis(analysisPrompt, documentContent);
       setAnalysisResponse(analysisResult);
     } catch (error) {
       console.error("Error analyzing document:", error);
       setAnalysisResponse("❌ Error: Could not analyze document. Please try again.");
     } finally {
-      // Fix: Use functional update
       setLoading(prev => ({ ...prev, analysis: false }));
     }
   };
 
   const generateQuestions = async () => {
     if (!documentContent) return;
-
     try {
-      // Fix: Use functional update and clear response first
       setLoading(prev => ({ ...prev, questions: true }));
-      setQuestionsResponse(""); // Clear previous response
-
-      // Use mock question generation instead of real API
+      setQuestionsResponse("");
       const questionsResult = await simulateQuestionGeneration(questionPrompt, documentContent);
       setQuestionsResponse(questionsResult);
     } catch (error) {
       console.error("Error generating questions:", error);
       setQuestionsResponse("❌ Error: Could not generate questions. Please try again.");
     } finally {
-      // Fix: Use functional update
       setLoading(prev => ({ ...prev, questions: false }));
     }
   };
@@ -258,7 +240,6 @@ Note: These questions are generated based on content analysis. For subject-speci
   const copyToClipboard = async (text, type) => {
     try {
       await navigator.clipboard.writeText(text);
-      // Fix: Use functional update for copied state
       setCopied(prev => ({ ...prev, [type]: true }));
       setTimeout(() => setCopied(prev => ({ ...prev, [type]: false })), 2000);
     } catch (err) {
@@ -272,7 +253,6 @@ Note: These questions are generated based on content analysis. For subject-speci
     setAnalysisResponse("");
     setQuestionsResponse("");
     setDocumentInfo({ name: "", type: "", size: "" });
-    // Reset loading and copied states
     setLoading({ analysis: false, questions: false, extract: false });
     setCopied({ analysis: false, questions: false });
     if (fileInputRef.current) {
@@ -323,6 +303,25 @@ ${questionsResponse}
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
+        
+        {/* 3. Back to Dashboard Button Added */}
+        <div className="mb-6">
+          <button 
+            onClick={() => window.history.back()}
+            className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200 group"
+          >
+            <svg 
+              className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Dashboard
+          </button>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -431,7 +430,7 @@ ${questionsResponse}
 
           {/* Document Info */}
           {documentInfo.name && (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200 mt-6">
               <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 Document Loaded
@@ -690,23 +689,6 @@ ${questionsResponse}
             </div>
           </div>
         )}
-
-    
-        {/* API Key Notice */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <HelpCircle className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-blue-800 mb-2">Demo Version:</h4>
-              <p className="text-sm text-blue-700">
-                This is a demo version using mock AI responses. For real AI analysis, you would need to integrate with 
-                services like OpenAI GPT, Google Gemini, or Anthropic Claude using their respective APIs.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

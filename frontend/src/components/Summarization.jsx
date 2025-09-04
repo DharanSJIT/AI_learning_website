@@ -1,6 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // 1. Import useEffect
 import axios from "axios";
-import { Clipboard, ClipboardCheck, FileText, Sparkles, Zap, Trash2, BarChart3 } from "lucide-react";
+import {
+  Clipboard,
+  ClipboardCheck,
+  FileText,
+  Sparkles,
+  Zap,
+  Trash2,
+  BarChart3,
+} from "lucide-react";
 
 const Summarization = () => {
   const [text, setText] = useState("");
@@ -8,53 +16,68 @@ const Summarization = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
-  const [selectedModel] = useState('gemini');
+  const [selectedModel] = useState("gemini");
   const [wordCount, setWordCount] = useState(0);
+
+  // 2. Add this useEffect hook to scroll to the top on component mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleTextChange = (e) => {
     const newText = e.target.value;
     setText(newText);
-    setWordCount(newText.trim().split(/\s+/).filter(word => word.length > 0).length);
+    setWordCount(
+      newText
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0).length
+    );
   };
 
   const summarizeText = async () => {
     setLoading(true);
     setError("");
     setSummary("");
-    
+
     try {
-      const endpoint = selectedModel === 'openai' 
-        ? `${import.meta.env.VITE_BACKEND_URL}/api/openai/summarize`
-        : `${import.meta.env.VITE_BACKEND_URL}/api/gemini/summarize`;
+      const endpoint =
+        selectedModel === "openai"
+          ? `${import.meta.env.VITE_BACKEND_URL}/api/openai/summarize`
+          : `${import.meta.env.VITE_BACKEND_URL}/api/gemini/summarize`;
 
       console.log(`Making request to: ${endpoint}`);
-      
+
       const response = await axios.post(endpoint, {
-        text: text
+        text: text,
       });
 
       setSummary(response.data.summary);
     } catch (err) {
-      console.error('Error summarizing text:', err);
-      
+      console.error("Error summarizing text:", err);
+
       let errorMessage = "⚠️ Error while summarizing. ";
-      
+
       if (err.response?.status === 403) {
-        errorMessage += "API access forbidden - check your API keys and credits.";
+        errorMessage +=
+          "API access forbidden - check your API keys and credits.";
       } else if (err.response?.status === 429) {
-        errorMessage += "Quota exceeded. Try using Gemini instead or add credits to your OpenAI account.";
+        errorMessage +=
+          "Quota exceeded. Try using Gemini instead or add credits to your OpenAI account.";
       } else if (err.response?.status === 402) {
-        errorMessage += "Insufficient credits. Please add credits to your OpenAI account.";
+        errorMessage +=
+          "Insufficient credits. Please add credits to your OpenAI account.";
       } else if (err.response?.status === 401) {
         errorMessage += "Invalid API key.";
       } else if (err.response?.data?.error) {
         errorMessage += err.response.data.error;
-      } else if (err.code === 'ERR_NETWORK') {
-        errorMessage += "Cannot connect to server. Make sure your backend is running on port 4000.";
+      } else if (err.code === "ERR_NETWORK") {
+        errorMessage +=
+          "Cannot connect to server. Make sure your backend is running on port 4000.";
       } else {
         errorMessage += "Please try again later.";
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -74,43 +97,55 @@ const Summarization = () => {
     setError("");
   };
 
-  const summaryWordCount = summary ? summary.trim().split(/\s+/).filter(word => word.length > 0).length : 0;
-  const compressionRate = wordCount > 0 ? Math.round(((wordCount - summaryWordCount) / wordCount) * 100) : 0;
+  const summaryWordCount = summary
+    ? summary
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0).length
+    : 0;
+  const compressionRate =
+    wordCount > 0
+      ? Math.round(((wordCount - summaryWordCount) / wordCount) * 100)
+      : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
+    <div className="min-h-[90vh]  bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        
         {/* Back to Dashboard Button */}
         <div className="mb-6">
-          <button 
+          <button
             onClick={() => window.history.back()}
             className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200 group"
           >
-            <svg 
-              className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             Back to Dashboard
           </button>
         </div>
-        
+
         {/* Enhanced Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
             AI Text Summarizer
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Transform lengthy documents into concise, meaningful summaries using advanced AI technology
+            Transform lengthy documents into concise, meaningful summaries using
+            advanced AI technology
           </p>
         </div>
 
         <div className="max-w-4xl mx-auto space-y-8">
-          
           {/* Model Selection Card */}
           {/* <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -232,26 +267,33 @@ const Summarization = () => {
                   font-mono text-sm
                   leading-relaxed
                 "
-                style={{ 
-                  minHeight: '400px',
-                  height: 'auto'
+                style={{
+                  minHeight: "400px",
+                  height: "auto",
                 }}
                 rows="20"
               />
-              
+
               {/* Character limit indicator */}
               {text.length > 0 && (
                 <div className="absolute bottom-4 right-4">
-                  <div className={`
+                  <div
+                    className={`
                     px-3 py-1 rounded-full text-xs font-medium
-                    ${text.length > 10000 
-                      ? 'bg-red-100 text-red-600' 
-                      : text.length > 5000
-                      ? 'bg-yellow-100 text-yellow-700'
-                      : 'bg-green-100 text-green-600'
+                    ${
+                      text.length > 10000
+                        ? "bg-red-100 text-red-600"
+                        : text.length > 5000
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-green-100 text-green-600"
                     }
-                  `}>
-                    {text.length > 10000 ? '⚠️ ' : text.length > 5000 ? '⚡ ' : '✅ '}
+                  `}
+                  >
+                    {text.length > 10000
+                      ? "⚠️ "
+                      : text.length > 5000
+                      ? "⚡ "
+                      : "✅ "}
                     {text.length.toLocaleString()}
                   </div>
                 </div>
@@ -267,26 +309,51 @@ const Summarization = () => {
                 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]
                 shadow-lg hover:shadow-xl
                 flex items-center justify-center gap-3
-                ${loading || !text.trim()
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
-                  : selectedModel === 'gemini'
-                  ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-                  : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                ${
+                  loading || !text.trim()
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+                    : selectedModel === "gemini"
+                    ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
                 }
               `}
             >
               {loading ? (
                 <>
-                  <svg className="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  <svg
+                    className="animate-spin h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    />
                   </svg>
-                  Analyzing with {selectedModel.charAt(0).toUpperCase() + selectedModel.slice(1)}...
+                  Analyzing with{" "}
+                  {selectedModel.charAt(0).toUpperCase() +
+                    selectedModel.slice(1)}
+                  ...
                 </>
               ) : (
                 <>
-                  {selectedModel === 'gemini' ? <Sparkles className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
-                  Summarize with {selectedModel.charAt(0).toUpperCase() + selectedModel.slice(1)}
+                  {selectedModel === "gemini" ? (
+                    <Sparkles className="w-6 h-6" />
+                  ) : (
+                    <Zap className="w-6 h-6" />
+                  )}
+                  Summarize with{" "}
+                  {selectedModel.charAt(0).toUpperCase() +
+                    selectedModel.slice(1)}
                 </>
               )}
             </button>
@@ -309,13 +376,32 @@ const Summarization = () => {
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                  <svg className="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  <svg
+                    className="animate-spin h-8 w-8 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Processing Your Text</h3>
-                <p className="text-gray-600">AI is analyzing and condensing your content...</p>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Processing Your Text
+                </h3>
+                <p className="text-gray-600">
+                  AI is analyzing and condensing your content...
+                </p>
               </div>
             </div>
           )}
@@ -323,7 +409,6 @@ const Summarization = () => {
           {/* Summary Result */}
           {summary && !loading && (
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
-              
               {/* Summary Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -331,18 +416,26 @@ const Summarization = () => {
                     <BarChart3 className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-800">Summary Generated</h3>
-                    <p className="text-sm text-gray-500">via {selectedModel.charAt(0).toUpperCase() + selectedModel.slice(1)} AI</p>
+                    <h3 className="text-xl font-bold text-gray-800">
+                      Summary Generated
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      via{" "}
+                      {selectedModel.charAt(0).toUpperCase() +
+                        selectedModel.slice(1)}{" "}
+                      AI
+                    </p>
                   </div>
                 </div>
-                
+
                 <button
                   onClick={handleCopy}
                   className={`
                     flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200
-                    ${copied 
-                      ? 'bg-green-100 text-green-700 shadow-green-500/20' 
-                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200 shadow-blue-500/20'
+                    ${
+                      copied
+                        ? "bg-green-100 text-green-700 shadow-green-500/20"
+                        : "bg-blue-100 text-blue-700 hover:bg-blue-200 shadow-blue-500/20"
                     } shadow-lg
                   `}
                 >
@@ -363,16 +456,28 @@ const Summarization = () => {
               {/* Summary Stats */}
               <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="bg-blue-50 rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600">{wordCount}</div>
-                  <div className="text-xs text-blue-500 font-medium">Original Words</div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {wordCount}
+                  </div>
+                  <div className="text-xs text-blue-500 font-medium">
+                    Original Words
+                  </div>
                 </div>
                 <div className="bg-green-50 rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-green-600">{summaryWordCount}</div>
-                  <div className="text-xs text-green-500 font-medium">Summary Words</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {summaryWordCount}
+                  </div>
+                  <div className="text-xs text-green-500 font-medium">
+                    Summary Words
+                  </div>
                 </div>
                 <div className="bg-purple-50 rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-purple-600">{compressionRate}%</div>
-                  <div className="text-xs text-purple-500 font-medium">Compressed</div>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {compressionRate}%
+                  </div>
+                  <div className="text-xs text-purple-500 font-medium">
+                    Compressed
+                  </div>
                 </div>
               </div>
 
@@ -392,11 +497,14 @@ const Summarization = () => {
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-gray-100 to-gray-200 rounded-2xl mb-6">
                   <FileText className="w-10 h-10 text-gray-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-700 mb-4">Ready for Summarization</h3>
+                <h3 className="text-2xl font-bold text-gray-700 mb-4">
+                  Ready for Summarization
+                </h3>
                 <p className="text-gray-500 max-w-md mx-auto leading-relaxed">
-                  Paste your text above and click summarize to see your AI-generated summary here.
+                  Paste your text above and click summarize to see your
+                  AI-generated summary here.
                 </p>
-                
+
                 {/* Feature highlights */}
                 <div className="grid grid-cols-1 gap-3 mt-8 text-sm text-gray-600">
                   <div className="flex items-center justify-center gap-2">
@@ -416,7 +524,6 @@ const Summarization = () => {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

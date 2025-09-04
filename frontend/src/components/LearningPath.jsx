@@ -151,7 +151,7 @@ Do NOT use markdown (** or *), just plain text.`;
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to do Dashboard
+          Back to Dashboard
         </Link>
 
         {/* Main Card */}
