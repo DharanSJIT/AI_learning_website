@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@headlessui/react": "^2.2.7",
     "@heroicons/react": "^2.2.0",
     "axios": "^1.4.0",
     "docx": "^9.5.1",
