@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react"; // 1. Import useEffect here
 import { Link } from "react-router-dom";
 import YouTubeResources from "./LearningResources/YouTubeResources";
 import UdemyResources from "./LearningResources/UdemyResources";
@@ -8,15 +8,21 @@ import DevToResources from "./LearningResources/DevToResources";
 import MediumResources from "./LearningResources/MediumResources";
 
 const Notes = () => {
+  // 2. Add this hook to scroll to the top on component mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div className="p-6 w-full sm:w-[90vw] md:w-[70vw] mx-auto mt-[0vh]">
+    <div className="min-h-[90vh] p-6 w-full sm:w-[90vw] md:w-[70vw] mx-auto mt-[0vh]">
 
       {/* Back to Dashboard */}
-      <Link
-        to="/home"
-        className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 mb-6 font-medium transition-colors"
-      >
-        <svg
+      <div className="absolute left-[3vw] ">
+        <Link
+          to="/home"
+          className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 mb-6 font-medium transition-colors"
+        >
+          <svg
           className="w-4 h-4 mr-2"
           fill="none"
           stroke="currentColor"
@@ -26,9 +32,10 @@ const Notes = () => {
         </svg>
         Back to Dashboard
       </Link>
+      </div>
 
       {/* Title */}
-      <h2 className="font-extrabold text-4xl text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 drop-shadow-lg mb-12">
+      <h2 className="font-extrabold text-4xl text-center text-transparent bg-clip-text bg-gradient-to-r pt-10 from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 drop-shadow-lg mb-12">
         Learning Resources
       </h2>
 

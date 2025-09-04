@@ -32,9 +32,10 @@ const CourseraResources = () => {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       {/* Title */}
-      <h3 className="font-extrabold text-3xl text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-300 dark:via-indigo-300 dark:to-purple-300 drop-shadow-md">
-        🎓 Coursera Resources
-      </h3>
+      <h3 className="font-extrabold text-4xl text-center mb-8 text-blue-600 dark:text-blue-300 drop-shadow-md">
+  🎓 Coursera Resources
+</h3>
+
 
       {/* Search Bar */}
       <div className="flex justify-center mb-10">
