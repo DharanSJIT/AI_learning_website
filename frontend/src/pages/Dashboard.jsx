@@ -6,7 +6,7 @@ import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 
 export default function Dashboard() {
-  const [user, setUser] = useState({
+  const [user] = useState({
     name: "Learner",
     skills: ["javascript", "react"],
     level: "beginner",

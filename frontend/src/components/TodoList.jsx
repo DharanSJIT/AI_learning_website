@@ -16,10 +16,10 @@ import {
   Timestamp 
 } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth, db, logout, signInWithGoogle } from "../firebase";
+import { auth, db, signInWithGoogle } from "../firebase";
 
 export default function AI_TodoList() {
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
   const [taskText, setTaskText] = useState("");
   const [aiPrompt, setAiPrompt] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -30,7 +30,7 @@ export default function AI_TodoList() {
   const [editAiPrompt, setEditAiPrompt] = useState("");
   const [tasksLoading, setTasksLoading] = useState(false);
   const [indexError, setIndexError] = useState(null);
-  const [backendUrl, setBackendUrl] = useState("");
+  const [ setBackendUrl] = useState("");
   const [useRealtimeListener, setUseRealtimeListener] = useState(true);
   
   // Local state for AI content (not stored in Firestore)
@@ -551,16 +551,16 @@ export default function AI_TodoList() {
   };
 
   // Handle logout
-  const handleLogout = async () => {
-    try {
-      await logout();
-      // Clear local AI content when logging out
-      setAiContent({});
-      setLoadingStates({});
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
+  // const handleLogout = async () => {
+  //   try {
+  //     await logout();
+  //     // Clear local AI content when logging out
+  //     setAiContent({});
+  //     setLoadingStates({});
+  //   } catch (error) {
+  //     console.error("Logout error:", error);
+  //   }
+  // };
 
   // Handle Enter key press for adding tasks
   const handleKeyPress = (e) => {
