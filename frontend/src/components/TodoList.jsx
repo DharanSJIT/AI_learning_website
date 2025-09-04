@@ -606,10 +606,10 @@ export default function AI_TodoList() {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-4xl font-bold text-gray-800">
+            <h2 className="text-4xl font-bold text-gray-800 mb-[20px] mt-[15px]">
               AI-Powered To-Do List
             </h2>
-            <p className="text-gray-600 mt-1">Welcome, {user.displayName || user.email}</p>
+            {/* <p className="text-gray-600 mt-1">Welcome, {user.displayName || user.email}</p> */}
             {/* Task Count */}
             <div className="flex gap-4 mt-2 text-sm">
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
