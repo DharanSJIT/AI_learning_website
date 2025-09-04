@@ -135,7 +135,8 @@ Do NOT use markdown (** or *), just plain text.`;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-4">
+    <div className="min-h-[90vh] max-h-[90vh] bg-gray-50 py-6 px-4">
+      {/* <div className="min-h-[90vh] max-h-[90vh] bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6 mt-[-15px]"></div> */}
       <div className="max-w-4xl mx-auto">
         {/* Back Link */}
         <Link

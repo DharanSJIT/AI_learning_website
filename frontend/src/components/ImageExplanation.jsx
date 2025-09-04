@@ -147,8 +147,9 @@ export default function ImageExplanation() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-[90vh] max-h-[90vh] bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6 mt-[-15px]">
+
+      <div className="max-w-6xl mx-auto pt-4">
         <Link
           to="/home"
           className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 font-medium transition-colors"
