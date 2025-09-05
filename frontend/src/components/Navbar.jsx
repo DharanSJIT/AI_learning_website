@@ -45,7 +45,7 @@ export default function Navbar() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
+    } catch (error) { // <-- FIX IS HERE: REMOVED THE "=>"
       console.error("Google Sign-In Error:", error.message);
     }
   };
@@ -72,12 +72,23 @@ export default function Navbar() {
       {/* Right side (Auth buttons) */}
       <div className="flex items-center">
         {!user ? (
-          <button
-            onClick={handleGoogleSignIn}
-            className="group relative inline-flex items-center justify-center px-5 py-2.5 overflow-hidden rounded-lg bg-gradient-to-tr from-indigo-500 to-blue-500 text-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105"
-          >
-            <span className="font-medium">Login with Google</span>
-          </button>
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Login Button (less emphasis) */}
+            <button
+              onClick={handleGoogleSignIn}
+              className="px-4 py-2.5 font-medium text-slate-700 hover:text-indigo-600 transition-colors duration-300"
+            >
+              Login
+            </button>
+            
+            {/* Sign Up Button (more emphasis, uses your original gradient style) */}
+            <button
+              onClick={handleGoogleSignIn}
+              className="group relative inline-flex items-center justify-center px-4 sm:px-5 py-2.5 overflow-hidden rounded-lg bg-gradient-to-tr from-indigo-500 to-blue-500 text-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105"
+            >
+              <span className="font-medium text-sm sm:text-base">Sign Up</span>
+            </button>
+          </div>
         ) : (
           <div className="relative" ref={dropdownRef}>
             {/* Avatar Trigger */}

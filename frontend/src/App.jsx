@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "./firebase";
 import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
 
 // Pages
 import Welcome from "./pages/Welcome";
-import Chat from "./pages/Chat";   // 👈 Added Chat page
+import Chat from "./pages/Chat";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 // Components
 import DashboardGrid from "./components/DashboardGrid";
@@ -89,11 +91,11 @@ export default function App() {
 
   return (
     <Router>
-      {/* Navbar */}
+      {/* --- 👇 NAVBAR SECTION WITH RESPONSIVE FIXES --- */}
       <nav
         className={`
           fixed top-0 left-0 right-0 z-50 h-20
-          flex justify-between items-center px-6
+          flex justify-between items-center px-4 sm:px-6 {/* Adjusted Padding */}
           transition-all duration-300
           ${
             isScrolled
@@ -102,16 +104,20 @@ export default function App() {
           }
         `}
       >
-        <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-blue-400">
-          🚀 AI-powered Personalized Learning
+        {/* Title now has two versions for different screen sizes */}
+        <h1 className="font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-blue-400">
+          {/* Shorter title for mobile screens */}
+          <span className="text-xl md:hidden">🚀 AI-Learning</span>
+          {/* Full title for medium screens and up */}
+          <span className="hidden md:inline text-2xl">🚀 AI-powered Personalized Learning</span>
         </h1>
 
         <div className="flex items-center space-x-4">
           {user ? (
             <div className="flex items-center space-x-3">
-              {/* User Info */}
+              {/* User Info - "Hello" text is now hidden on mobile */}
               <span className="hidden md:block text-gray-700 dark:text-gray-300 font-medium">
-                Hello, {user.displayName || "Learner"} 👋
+                Hello, {user.displayName?.split(' ')[0] || "Learner"} 👋
               </span>
 
               {/* Avatar */}
@@ -133,12 +139,20 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={handleLogin}
-              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
-            >
-              Login / Signup
-            </button>
+            <div className="flex items-center space-x-2 sm:space-x-4"> {/* Adjusted spacing */}
+              <Link
+                to="/login"
+                className="font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors px-2 sm:px-0"
+              >
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                className="px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-sm sm:text-base" // Adjusted padding & text size
+              >
+                Sign Up
+              </Link>
+            </div>
           )}
         </div>
       </nav>
@@ -152,11 +166,15 @@ export default function App() {
           {toast.message}
         </div>
       )}
-
       {/* Main */}
       <main className="pt-20">
         <Routes>
           <Route path="/" element={<Welcome />} />
+          <Route path="/dashboard" element={<DashboardGrid user={user} />} />
+          <Route path="/login" element={<Login />} />     {/* 👈 Added Route */}
+          <Route path="/signup" element={<Signup />} />   {/* 👈 Added Route */}
+          {/* Tool Routes */}
+           <Route path="/" element={<Welcome />} />
           <Route path="/home" element={<DashboardGrid user={user} />} />
           {/* Tool Routes */}
           <Route path="/learning-path" element={<LearningPath />} />
