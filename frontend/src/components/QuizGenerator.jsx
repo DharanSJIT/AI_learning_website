@@ -1,6 +1,14 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+
+// ------------------------
+// 🔹 Firebase Imports
+// ------------------------
+import { auth, db } from "../firebase"; // Adjust the path to your firebase.js
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 
 export default function QuizGenerator() {
   const [topic, setTopic] = useState("");
@@ -12,273 +20,150 @@ export default function QuizGenerator() {
   const [error, setError] = useState("");
   const [quizSubmitted, setQuizSubmitted] = useState(false);
 
+  // --- New State for Firebase User ---
+  const [user, setUser] = useState(null);
+
+  // --- Authentication Listener ---
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
+
   // Improved error handling with specific error types
   const handleApiError = (error) => {
     console.error("Quiz generation error:", error);
-    
     if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
       return "⏰ Request timed out. The server is taking too long to respond. Please try again.";
     }
-    
     if (error.response) {
-      const status = error.response.status;
-      const data = error.response.data;
-      
+      const status = error.response.status; const data = error.response.data;
       switch (status) {
-        case 400:
-          return "❌ Bad request. Please check your topic and try again.";
-        case 401:
-          return "🔐 Authentication failed. Please check your API configuration.";
-        case 403:
-          return "🔒 Access denied. Please verify your API permissions.";
-        case 404:
-          return "🔍 API endpoint not found. Please contact support.";
-        case 429:
-          return "⏳ Rate limit exceeded. Please wait a moment and try again.";
-        case 500:
-        case 502:
-        case 503:
-        case 504:
-          return "🔧 Server error. Please try again in a few moments.";
-        default:
-          return `🌐 API Error (${status}): ${data?.message || "Unknown server error"}`;
+        case 400: return "❌ Bad request. Please check your topic and try again.";
+        case 401: return "🔐 Authentication failed. Please check your API configuration.";
+        case 403: return "🔒 Access denied. Please verify your API permissions.";
+        case 404: return "🔍 API endpoint not found. Please contact support.";
+        case 429: return "⏳ Rate limit exceeded. Please wait a moment and try again.";
+        case 500: case 502: case 503: case 504: return "🔧 Server error. Please try again in a few moments.";
+        default: return `🌐 API Error (${status}): ${data?.message || "Unknown server error"}`;
       }
     }
-    
-    if (error.request) {
-      return "📡 Unable to connect to server. Please check your internet connection and try again.";
-    }
-    
+    if (error.request) { return "📡 Unable to connect to server. Please check your internet connection and try again."; }
     return `❌ ${error.message || "An unexpected error occurred. Please try again."}`;
   };
 
   // Improved JSON parsing with better error detection
   const parseQuizResponse = (text) => {
-    if (!text || typeof text !== 'string') {
-      throw new Error("Empty or invalid response received");
-    }
-
-    // Clean the response
+    if (!text || typeof text !== 'string') { throw new Error("Empty or invalid response received"); }
     let cleanText = text.trim();
-    
-    // Remove markdown formatting
     cleanText = cleanText.replace(/```json/gi, "").replace(/```/g, "").trim();
-    
-    // Check for common error indicators
-    const errorIndicators = [
-      'error', 'Error', 'ERROR',
-      'failed', 'Failed', 'FAILED',
-      'rate limit', 'Rate limit', 'RATE_LIMIT',
-      'no response', 'No response', 'NO_RESPONSE',
-      'timeout', 'Timeout', 'TIMEOUT'
-    ];
-    
-    const hasError = errorIndicators.some(indicator => 
-      cleanText.toLowerCase().includes(indicator.toLowerCase())
-    );
-    
-    if (hasError && cleanText.length < 100) {
-      throw new Error(`API returned error: ${cleanText}`);
-    }
-    
-    // Extract JSON from response
+    const errorIndicators = ['error', 'Error', 'ERROR', 'failed', 'Failed', 'FAILED', 'rate limit', 'Rate limit', 'RATE_LIMIT', 'no response', 'No response', 'NO_RESPONSE', 'timeout', 'Timeout', 'TIMEOUT'];
+    const hasError = errorIndicators.some(indicator => cleanText.toLowerCase().includes(indicator.toLowerCase()));
+    if (hasError && cleanText.length < 100) { throw new Error(`API returned error: ${cleanText}`); }
     const jsonMatch = cleanText.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      cleanText = jsonMatch[0];
-    } else if (!cleanText.startsWith('[') && !cleanText.startsWith('{')) {
-      throw new Error("Response does not contain valid JSON format");
-    }
-
-    // Parse JSON
+    if (jsonMatch) { cleanText = jsonMatch[0]; } else if (!cleanText.startsWith('[') && !cleanText.startsWith('{')) { throw new Error("Response does not contain valid JSON format"); }
     let parsed;
-    try {
-      parsed = JSON.parse(cleanText);
-    } catch (parseError) {
-      console.error("JSON Parse Error:", parseError);
-      console.error("Raw text:", cleanText);
-      throw new Error("Invalid JSON format received from API");
-    }
-
+    try { parsed = JSON.parse(cleanText); } catch (parseError) { console.error("JSON Parse Error:", parseError); console.error("Raw text:", cleanText); throw new Error("Invalid JSON format received from API"); }
     return parsed;
   };
 
   // Improved quiz validation
   const validateQuiz = (quizData) => {
-    if (!Array.isArray(quizData)) {
-      throw new Error("Quiz data must be an array of questions");
-    }
-
-    if (quizData.length === 0) {
-      throw new Error("No questions were generated. Please try a different topic.");
-    }
-
-    // Validate each question
+    if (!Array.isArray(quizData)) { throw new Error("Quiz data must be an array of questions"); }
+    if (quizData.length === 0) { throw new Error("No questions were generated. Please try a different topic."); }
     quizData.forEach((question, index) => {
       const questionNum = index + 1;
-      
-      if (!question || typeof question !== 'object') {
-        throw new Error(`Question ${questionNum}: Invalid question format`);
-      }
-      
-      if (!question.question || typeof question.question !== 'string' || !question.question.trim()) {
-        throw new Error(`Question ${questionNum}: Missing or empty question text`);
-      }
-      
-      if (!Array.isArray(question.options)) {
-        throw new Error(`Question ${questionNum}: Options must be an array`);
-      }
-      
-      if (question.options.length !== 4) {
-        throw new Error(`Question ${questionNum}: Must have exactly 4 options (found ${question.options.length})`);
-      }
-      
-      // Check for empty options
+      if (!question || typeof question !== 'object') { throw new Error(`Question ${questionNum}: Invalid question format`); }
+      if (!question.question || typeof question.question !== 'string' || !question.question.trim()) { throw new Error(`Question ${questionNum}: Missing or empty question text`); }
+      if (!Array.isArray(question.options)) { throw new Error(`Question ${questionNum}: Options must be an array`); }
+      if (question.options.length !== 4) { throw new Error(`Question ${questionNum}: Must have exactly 4 options (found ${question.options.length})`); }
       const hasEmptyOption = question.options.some(opt => !opt || typeof opt !== 'string' || !opt.trim());
-      if (hasEmptyOption) {
-        throw new Error(`Question ${questionNum}: All options must be non-empty strings`);
-      }
-      
-      // Check for duplicate options
+      if (hasEmptyOption) { throw new Error(`Question ${questionNum}: All options must be non-empty strings`); }
       const uniqueOptions = new Set(question.options.map(opt => opt.trim().toLowerCase()));
-      if (uniqueOptions.size !== question.options.length) {
-        throw new Error(`Question ${questionNum}: Options must be unique`);
-      }
-      
-      if (!question.answer || typeof question.answer !== 'string' || !question.answer.trim()) {
-        throw new Error(`Question ${questionNum}: Missing or empty correct answer`);
-      }
-      
-      if (!question.options.includes(question.answer)) {
-        throw new Error(`Question ${questionNum}: Correct answer "${question.answer}" is not in the options list`);
-      }
+      if (uniqueOptions.size !== question.options.length) { throw new Error(`Question ${questionNum}: Options must be unique`); }
+      if (!question.answer || typeof question.answer !== 'string' || !question.answer.trim()) { throw new Error(`Question ${questionNum}: Missing or empty correct answer`); }
+      if (!question.options.includes(question.answer)) { throw new Error(`Question ${questionNum}: Correct answer "${question.answer}" is not in the options list`); }
     });
-
     return true;
   };
 
-  // Main quiz generation function with improved error handling
   const generateQuiz = useCallback(async () => {
-    if (!topic.trim()) {
-      setError("⚠️ Please enter a topic to generate the quiz.");
-      return;
-    }
-
-    // Reset state
-    setLoading(true);
-    setAnswers({});
-    setQuiz(null);
-    setError("");
-    setShowResults(false);
-    setQuizSubmitted(false);
-
+    if (!topic.trim()) { setError("⚠️ Please enter a topic to generate the quiz."); return; }
+    setLoading(true); setAnswers({}); setQuiz(null); setError(""); setShowResults(false); setQuizSubmitted(false);
     try {
-      const prompt = `Generate a ${questionCount}-question multiple-choice quiz on "${topic}".
-      
-      Requirements:
-      - Each question must have exactly 4 unique options
-      - Only one option should be correct
-      - Questions should be clear and unambiguous
-      - Options should be plausible but distinct
-      
-      Return ONLY valid JSON in this exact format (no extra text, no markdown, no explanations):
-      [
-        {
-          "question": "What is React?",
-          "options": ["A JavaScript library", "A programming language", "A database", "An operating system"],
-          "answer": "A JavaScript library"
-        }
-      ]`;
-
-      // Make API request with timeout
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/gemini/generate`,
-        { prompt },
-        {
-          timeout: 30000, // 30 second timeout
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
-
-      // Validate response structure
-      if (!response.data) {
-        throw new Error("No data received from server");
-      }
-
-      if (!response.data.text) {
-        throw new Error("No text content in server response");
-      }
-
-      // Parse and validate the quiz
+      const prompt = `Generate a ${questionCount}-question multiple-choice quiz on "${topic}".\n\nRequirements:\n- Each question must have exactly 4 unique options\n- Only one option should be correct\n- Questions should be clear and unambiguous\n- Options should be plausible but distinct\n\nReturn ONLY valid JSON in this exact format (no extra text, no markdown, no explanations):\n[\n  {\n    "question": "What is React?",\n    "options": ["A JavaScript library", "A programming language", "A database", "An operating system"],\n    "answer": "A JavaScript library"\n  }\n]`;
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/gemini/generate`, { prompt }, { timeout: 30000, headers: { 'Content-Type': 'application/json' } });
+      if (!response.data) { throw new Error("No data received from server"); }
+      if (!response.data.text) { throw new Error("No text content in server response"); }
       const quizData = parseQuizResponse(response.data.text);
       validateQuiz(quizData);
-
-      // Limit questions to requested count (in case API returns more)
       const limitedQuiz = quizData.slice(0, questionCount);
-      
-      setQuiz(limitedQuiz);
-      setError("");
-      
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      setError(errorMessage);
-      setQuiz(null);
-    } finally {
-      setLoading(false);
-    }
+      setQuiz(limitedQuiz); setError("");
+    } catch (error) { const errorMessage = handleApiError(error); setError(errorMessage); setQuiz(null); } finally { setLoading(false); }
   }, [topic, questionCount]);
 
-  // Handle answer selection
   const handleAnswer = useCallback((qIndex, option) => {
     if (quizSubmitted) return;
     setAnswers(prev => ({ ...prev, [qIndex]: option }));
   }, [quizSubmitted]);
 
-  // Calculate score
   const calculateScore = useCallback(() => {
     if (!quiz) return 0;
-    
     return Object.keys(answers).reduce((correct, qIndex) => {
       const questionIndex = parseInt(qIndex);
-      if (quiz[questionIndex] && answers[qIndex] === quiz[questionIndex].answer) {
-        return correct + 1;
-      }
+      if (quiz[questionIndex] && answers[qIndex] === quiz[questionIndex].answer) { return correct + 1; }
       return correct;
     }, 0);
   }, [quiz, answers]);
 
-  // Submit quiz
-  const handleSubmitQuiz = useCallback(() => {
+  // --- MODIFIED: handleSubmitQuiz now saves results to Firestore if logged in ---
+  const handleSubmitQuiz = useCallback(async () => {
     setQuizSubmitted(true);
     setShowResults(true);
-  }, []);
 
-  // Reset entire quiz
+    // If the user is logged in, save the results to Firestore
+    if (user && quiz) {
+      const score = calculateScore();
+      const resultData = {
+        userId: user.uid,
+        topic: topic,
+        score: score,
+        totalQuestions: quiz.length,
+        percentage: Math.round((score / quiz.length) * 100),
+        answers: answers,
+        quiz: quiz, // Storing the full quiz for potential review later
+        createdAt: serverTimestamp(),
+      };
+
+      try {
+        const resultsCollectionRef = collection(db, "users", user.uid, "quizResults");
+        await addDoc(resultsCollectionRef, resultData);
+        console.log("Quiz results saved successfully!");
+      } catch (e) {
+        console.error("Error saving quiz results: ", e);
+      }
+    }
+  }, [user, quiz, answers, topic, calculateScore]);
+
   const resetQuiz = useCallback(() => {
-    setQuiz(null);
-    setAnswers({});
-    setShowResults(false);
-    setError("");
-    setTopic("");
-    setQuizSubmitted(false);
+    setQuiz(null); setAnswers({}); setShowResults(false); setError(""); setTopic(""); setQuizSubmitted(false);
   }, []);
 
-  // Retake current quiz
   const retakeQuiz = useCallback(() => {
-    setAnswers({});
-    setShowResults(false);
-    setQuizSubmitted(false);
+    setAnswers({}); setShowResults(false); setQuizSubmitted(false);
   }, []);
 
-  // Check if all questions are answered
   const allQuestionsAnswered = quiz && Object.keys(answers).length === quiz.length;
   const progress = quiz ? Object.keys(answers).length : 0;
   const progressPercentage = quiz ? Math.round((progress / quiz.length) * 100) : 0;
 
   return (
-    <div className="min-h-[90vh]  bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-[90vh] bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="max-w-4xl mx-auto p-6 pt-10">
+        
         {/* Back Link */}
         <div className="absolute left-[3vw] top-[12vh]">
           <Link
@@ -286,10 +171,10 @@ export default function QuizGenerator() {
             className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline mb-[15px] font-semibold transition-colors duration-200"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to Dashboard
-        </Link>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Dashboard
+          </Link>
         </div>
 
         {/* Header */}
@@ -302,6 +187,16 @@ export default function QuizGenerator() {
           </p>
         </div>
 
+        {/* 👇 NEW: CONDITIONAL WARNING FOR LOGGED-OUT USERS 👇 */}
+        {!user && !loading && (
+          <div className="mb-8 flex items-center gap-4 p-4 text-sm text-yellow-800 rounded-lg bg-yellow-100 border-l-4 border-yellow-500 shadow-sm dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-600" role="alert">
+            <ExclamationTriangleIcon className="h-6 w-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
+            <div>
+              <span className="font-bold">You are not logged in.</span> Your quiz results will not be saved.
+            </div>
+          </div>
+        )}
+        
         {/* Input & Generate Button */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -315,26 +210,11 @@ export default function QuizGenerator() {
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="Enter a topic (e.g. JavaScript, Machine Learning, World History)"
                 className="
-                  w-full
-                  rounded-xl
-                  border-2
-                  border-gray-200
-                  dark:border-gray-600
-                  px-4
-                  py-3
-                  text-gray-900
-                  dark:text-white
-                  bg-white
-                  dark:bg-gray-700
-                  placeholder-gray-400
-                  dark:placeholder-gray-300
-                  focus:outline-none
-                  focus:ring-4
-                  focus:ring-blue-100
-                  dark:focus:ring-blue-900/50
-                  focus:border-blue-500
-                  transition-all
-                  duration-200
+                  w-full rounded-xl border-2 border-gray-200 dark:border-gray-600
+                  px-4 py-3 text-gray-900 dark:text-white bg-white dark:bg-gray-700
+                  placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-4
+                  focus:ring-blue-100 dark:focus:ring-blue-900/50 focus:border-blue-500
+                  transition-all duration-200
                 "
                 autoComplete="off"
                 onKeyPress={(e) => {
@@ -355,26 +235,11 @@ export default function QuizGenerator() {
                 onChange={(e) => setQuestionCount(parseInt(e.target.value))}
                 disabled={loading}
                 className="
-                  w-full
-                  rounded-xl
-                  border-2
-                  border-gray-200
-                  dark:border-gray-600
-                  px-4
-                  py-3
-                  text-gray-900
-                  dark:text-white
-                  bg-white
-                  dark:bg-gray-700
-                  focus:outline-none
-                  focus:ring-4
-                  focus:ring-blue-100
-                  dark:focus:ring-blue-900/50
-                  focus:border-blue-500
-                  transition-all
-                  duration-200
-                  disabled:opacity-50
-                  disabled:cursor-not-allowed
+                  w-full rounded-xl border-2 border-gray-200 dark:border-gray-600
+                  px-4 py-3 text-gray-900 dark:text-white bg-white dark:bg-gray-700
+                  focus:outline-none focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/50
+                  focus:border-blue-500 transition-all duration-200
+                  disabled:opacity-50 disabled:cursor-not-allowed
                 "
               >
                 <option value={5}>5 Questions</option>
@@ -390,56 +255,18 @@ export default function QuizGenerator() {
             onClick={generateQuiz}
             disabled={loading || !topic.trim()}
             className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-blue-500
-              to-purple-500
-              hover:from-blue-600
-              hover:to-purple-600
-              px-8
-              py-3
-              text-white
-              font-semibold
-              shadow-lg
-              hover:shadow-xl
-              disabled:opacity-50
-              disabled:cursor-not-allowed
-              disabled:transform-none
-              transition-all
-              duration-200
-              flex
-              items-center
-              justify-center
-              gap-2
-              transform
-              hover:scale-105
-              focus:outline-none
-              focus:ring-4
-              focus:ring-blue-200
-              dark:focus:ring-blue-800
+              w-full rounded-xl bg-gradient-to-r from-blue-500 to-purple-500
+              hover:from-blue-600 hover:to-purple-600 px-8 py-3 text-white font-semibold
+              shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed
+              disabled:transform-none transition-all duration-200 flex items-center justify-center
+              gap-2 transform hover:scale-105 focus:outline-none focus:ring-4
+              focus:ring-blue-200 dark:focus:ring-blue-800
             "
           >
             {loading && (
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                />
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
               </svg>
             )}
             {loading ? "Generating..." : `Generate ${questionCount} Question Quiz`}
@@ -523,7 +350,6 @@ export default function QuizGenerator() {
                 You scored {calculateScore()} out of {quiz.length} questions
               </p>
               
-              {/* Score interpretation */}
               <div className="mt-4">
                 {(() => {
                   const percentage = Math.round((calculateScore() / quiz.length) * 100);
@@ -535,7 +361,6 @@ export default function QuizGenerator() {
               </div>
             </div>
 
-            {/* Detailed Results */}
             <div className="space-y-4 mb-8">
               {quiz.map((question, index) => {
                 const userAnswer = answers[index];
@@ -544,9 +369,7 @@ export default function QuizGenerator() {
                 return (
                   <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
                     <div className="flex items-start gap-3 mb-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        isCorrect ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'
-                      }`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isCorrect ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
                         {isCorrect ? (
                           <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -608,22 +431,7 @@ export default function QuizGenerator() {
               {quiz.map((question, index) => {
                 const selected = answers[index];
                 return (
-                  <div
-                    key={index}
-                    className="
-                      p-6
-                      bg-white
-                      dark:bg-gray-800
-                      rounded-2xl
-                      shadow-lg
-                      border
-                      border-gray-200
-                      dark:border-gray-700
-                      transition-all
-                      duration-200
-                      hover:shadow-xl
-                    "
-                  >
+                  <div key={index} className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-xl">
                     <div className="flex items-start gap-4 mb-4">
                       <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-white font-bold text-sm">{index + 1}</span>
@@ -643,23 +451,12 @@ export default function QuizGenerator() {
                             onClick={() => handleAnswer(index, option)}
                             disabled={quizSubmitted}
                             className={`
-                              flex items-center justify-between
-                              w-full
-                              px-4
-                              py-3
-                              rounded-xl
-                              border-2
-                              font-medium
-                              transition-all
-                              duration-200
-                              cursor-pointer
-                              select-none
-                              focus:outline-none
-                              focus:ring-4
-                              ${
-                                isSelected
-                                  ? "bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-700 dark:text-blue-400 ring-blue-200 dark:ring-blue-800"
-                                  : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 ring-gray-200 dark:ring-gray-600"
+                              flex items-center justify-between w-full px-4 py-3 rounded-xl
+                              border-2 font-medium transition-all duration-200 cursor-pointer
+                              select-none focus:outline-none focus:ring-4
+                              ${isSelected
+                                ? "bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-700 dark:text-blue-400 ring-blue-200 dark:ring-blue-800"
+                                : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 ring-gray-200 dark:ring-gray-600"
                               }
                               ${quizSubmitted ? "cursor-not-allowed opacity-60" : "hover:scale-[1.02] hover:shadow-md"}
                             `}
@@ -679,37 +476,15 @@ export default function QuizGenerator() {
               })}
             </div>
 
-            {/* Submit Quiz Button */}
             {allQuestionsAnswered && !quizSubmitted && (
               <div className="text-center mb-8">
                 <button
                   onClick={handleSubmitQuiz}
                   className="
-                    bg-gradient-to-r
-                    from-green-500
-                    to-blue-500
-                    hover:from-green-600
-                    hover:to-blue-600
-                    text-white
-                    px-8
-                    py-4
-                    rounded-2xl
-                    font-bold
-                    text-lg
-                    shadow-lg
-                    hover:shadow-xl
-                    transition-all
-                    duration-200
-                    transform
-                    hover:scale-105
-                    flex
-                    items-center
-                    justify-center
-                    gap-2
-                    mx-auto
-                    focus:outline-none
-                    focus:ring-4
-                    focus:ring-green-200
+                    bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600
+                    text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl
+                    transition-all duration-200 transform hover:scale-105 flex items-center
+                    justify-center gap-2 mx-auto focus:outline-none focus:ring-4 focus:ring-green-200
                   "
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -720,7 +495,6 @@ export default function QuizGenerator() {
               </div>
             )}
 
-            {/* Progress Indicator */}
             {quiz && (
               <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg">
                 <div className="flex justify-between items-center mb-2">
@@ -747,7 +521,6 @@ export default function QuizGenerator() {
           </>
         )}
 
-        {/* Placeholder message when no quiz */}
         {!loading && quiz === null && !error && (
           <div className="text-center py-4">
             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -762,7 +535,6 @@ export default function QuizGenerator() {
               Enter a topic and select the number of questions to create your personalized quiz.
             </p>
             
-            {/* Popular topics suggestion */}
             <div className="max-w-md mx-auto">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Popular topics:</p>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -780,7 +552,6 @@ export default function QuizGenerator() {
           </div>
         )}
 
-        {/* Empty quiz state (if quiz generation returns empty array) */}
         {!loading && Array.isArray(quiz) && quiz.length === 0 && !error && (
           <div className="text-center py-16">
             <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
