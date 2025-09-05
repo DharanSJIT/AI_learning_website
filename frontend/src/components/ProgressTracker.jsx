@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Dialog, Transition } from "@headlessui/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,23 +9,37 @@ import {
   PlusIcon,
   CalendarDaysIcon,
   FlagIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 
-// Task Item Component (Light Theme)
-const TaskItem = ({ task, index, onToggle, onEdit, onDelete }) => {
+// Firebase Imports
+import { auth, db } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import {
+  collection,
+  query,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  orderBy,
+} from "firebase/firestore";
+
+// Task Item Component (No changes needed)
+const TaskItem = ({ task, onToggle, onEdit, onDelete }) => {
   const priorityStyles = {
     High: "border-l-red-500",
     Medium: "border-l-yellow-500",
     Low: "border-l-green-500",
   };
-
   const priorityBadgeStyles = {
     High: "bg-red-100 text-red-700",
     Medium: "bg-yellow-100 text-yellow-700",
     Low: "bg-green-100 text-green-700",
   };
-
   return (
     <motion.li
       layout
@@ -96,12 +110,14 @@ const TaskItem = ({ task, index, onToggle, onEdit, onDelete }) => {
   );
 };
 
-// Main Component (Light Theme)
+// Main Component
 export default function ProgressTracker() {
   const [tasks, setTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Form State
   const [name, setName] = useState("");
@@ -109,9 +125,34 @@ export default function ProgressTracker() {
   const [dueDate, setDueDate] = useState("");
   const [priority, setPriority] = useState("Medium");
 
-  const completedTasksCount = tasks.filter((t) => t.completed).length;
-  const progress =
-    tasks.length === 0 ? 0 : (completedTasksCount / tasks.length) * 100;
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      // User is logged in, use Firestore
+      const tasksCollectionRef = collection(db, "users", user.uid, "tasks");
+      const q = query(tasksCollectionRef, orderBy("createdAt", "desc"));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const tasksData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setTasks(tasksData); // Overwrites local tasks with saved ones
+      });
+      return () => unsubscribe();
+    } else {
+      // User is logged out, tasks will be managed locally.
+      // If there were any saved tasks, clear them. Local tasks remain.
+      // This logic intentionally does not clear the `tasks` state on logout,
+      // allowing the demo tasks to persist until a user logs in.
+    }
+  }, [user]);
 
   const openModalForNew = () => {
     setIsEditing(false);
@@ -123,41 +164,101 @@ export default function ProgressTracker() {
     setIsModalOpen(true);
   };
 
-  const openModalForEdit = (task, index) => {
+  const openModalForEdit = (task) => {
     setIsEditing(true);
-    setCurrentTask({ ...task, index });
+    setCurrentTask(task);
     setName(task.name);
     setDescription(task.description);
-    setDueDate(task.dueDate);
+    setDueDate(task.dueDate || "");
     setPriority(task.priority);
     setIsModalOpen(true);
   };
 
   const closeModal = () => setIsModalOpen(false);
 
-  const handleSubmit = () => {
+  // --- MODIFIED C-R-U-D FUNCTIONS ---
+
+  const handleSubmit = async () => {
     if (!name.trim()) return;
 
-    if (isEditing && currentTask) {
-      const updatedTasks = tasks.map((t, i) =>
-        i === currentTask.index
-          ? { ...t, name, description, dueDate, priority }
-          : t
-      );
-      setTasks(updatedTasks);
+    if (user) {
+      // --- Logged-in logic (Firestore) ---
+      const tasksCollectionRef = collection(db, "users", user.uid, "tasks");
+      if (isEditing && currentTask) {
+        const taskDocRef = doc(db, "users", user.uid, "tasks", currentTask.id);
+        await updateDoc(taskDocRef, { name, description, dueDate, priority });
+      } else {
+        await addDoc(tasksCollectionRef, {
+          name,
+          description,
+          dueDate,
+          priority,
+          completed: false,
+          createdAt: serverTimestamp(),
+        });
+      }
     } else {
-      const newTask = { name, description, completed: false, dueDate, priority };
-      setTasks([...tasks, newTask]);
+      // --- Logged-out logic (Local State for Demo) ---
+      if (isEditing && currentTask) {
+        setTasks(
+          tasks.map((t) =>
+            t.id === currentTask.id
+              ? { ...t, name, description, dueDate, priority }
+              : t
+          )
+        );
+      } else {
+        const newTask = {
+          id: Date.now(),
+          name,
+          description,
+          dueDate,
+          priority,
+          completed: false,
+        };
+        setTasks([...tasks, newTask]);
+      }
     }
     closeModal();
   };
 
-  const deleteTask = (index) => setTasks(tasks.filter((_, i) => i !== index));
+  const deleteTask = async (taskId) => {
+    if (user) {
+      // --- Logged-in logic (Firestore) ---
+      const taskDocRef = doc(db, "users", user.uid, "tasks", taskId);
+      await deleteDoc(taskDocRef);
+    } else {
+      // --- Logged-out logic (Local State for Demo) ---
+      setTasks(tasks.filter((t) => t.id !== taskId));
+    }
+  };
 
-  const toggleCompletion = (index) =>
-    setTasks(
-      tasks.map((t, i) => (i === index ? { ...t, completed: !t.completed } : t))
+  const toggleCompletion = async (task) => {
+    if (user) {
+      // --- Logged-in logic (Firestore) ---
+      const taskDocRef = doc(db, "users", user.uid, "tasks", task.id);
+      await updateDoc(taskDocRef, { completed: !task.completed });
+    } else {
+      // --- Logged-out logic (Local State for Demo) ---
+      setTasks(
+        tasks.map((t) =>
+          t.id === task.id ? { ...t, completed: !t.completed } : t
+        )
+      );
+    }
+  };
+
+  const completedTasksCount = tasks.filter((t) => t.completed).length;
+  const progress =
+    tasks.length === 0 ? 0 : (completedTasksCount / tasks.length) * 100;
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[90vh]">
+        <p className="text-slate-600">Loading...</p>
+      </div>
     );
+  }
 
   return (
     <>
@@ -170,7 +271,7 @@ export default function ProgressTracker() {
             ← Back to Dashboard
           </Link>
 
-          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-slate-800">
                 Task Progress
@@ -187,6 +288,19 @@ export default function ProgressTracker() {
               Add New Task
             </button>
           </header>
+
+          {!user && (
+            <div
+              className="my-6 flex items-center gap-4 p-4 text-sm text-yellow-800 rounded-lg bg-yellow-100 border-l-4 border-yellow-500 shadow-sm"
+              role="alert"
+            >
+              <ExclamationTriangleIcon className="h-6 w-6 text-yellow-600 flex-shrink-0" />
+              <div>
+                <span className="font-bold">You are not logged in.</span> Your
+                tasks are part of a demo and will not be saved.
+              </div>
+            </div>
+          )}
 
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-8">
             <div className="flex justify-between items-center mb-2">
@@ -215,14 +329,13 @@ export default function ProgressTracker() {
             <AnimatePresence>
               {tasks.length > 0 ? (
                 <ul className="space-y-3">
-                  {tasks.map((t, i) => (
+                  {tasks.map((task) => (
                     <TaskItem
-                      key={i}
-                      task={t}
-                      index={i}
-                      onToggle={() => toggleCompletion(i)}
-                      onEdit={() => openModalForEdit(t, i)}
-                      onDelete={() => deleteTask(i)}
+                      key={task.id}
+                      task={task}
+                      onToggle={() => toggleCompletion(task)}
+                      onEdit={() => openModalForEdit(task)}
+                      onDelete={() => deleteTask(task.id)}
                     />
                   ))}
                 </ul>
@@ -231,7 +344,6 @@ export default function ProgressTracker() {
                   <h3 className="text-lg font-semibold text-slate-700">
                     No Tasks Yet!
                   </h3>
-                  {/* THIS IS THE CORRECTED LINE */}
                   <p className="text-slate-500 mt-1 mb-4">
                     Click "Add New Task" to get started.
                   </p>
@@ -248,6 +360,7 @@ export default function ProgressTracker() {
         </div>
       </div>
 
+      {/* Modal JSX remains the same */}
       <Transition appear show={isModalOpen} as={React.Fragment}>
         <Dialog as="div" className="relative z-50" onClose={closeModal}>
           <Transition.Child
@@ -261,7 +374,6 @@ export default function ProgressTracker() {
           >
             <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
           </Transition.Child>
-
           <div className="fixed inset-0 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-4 text-center">
               <Transition.Child
@@ -281,11 +393,31 @@ export default function ProgressTracker() {
                     {isEditing ? "Edit Task" : "Add a New Task"}
                   </Dialog.Title>
                   <div className="mt-4 space-y-4">
-                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Task name" className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white" />
-                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description..." className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-900 h-24 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white" />
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Task name"
+                      className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                    />
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Description..."
+                      className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-900 h-24 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                    />
                     <div className="grid grid-cols-2 gap-4">
-                      <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white" />
-                      <select value={priority} onChange={(e) => setPriority(e.target.value)} className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                      <input
+                        type="date"
+                        value={dueDate}
+                        onChange={(e) => setDueDate(e.target.value)}
+                        className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                      />
+                      <select
+                        value={priority}
+                        onChange={(e) => setPriority(e.target.value)}
+                        className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                      >
                         <option value="Low">Low</option>
                         <option value="Medium">Medium</option>
                         <option value="High">High</option>
@@ -293,8 +425,20 @@ export default function ProgressTracker() {
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end gap-3">
-                    <button type="button" onClick={closeModal} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-                    <button type="button" onClick={handleSubmit} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">{isEditing ? "Save Changes" : "Add Task"}</button>
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+                    >
+                      {isEditing ? "Save Changes" : "Add Task"}
+                    </button>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>
