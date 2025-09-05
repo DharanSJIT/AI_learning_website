@@ -42,6 +42,9 @@ export default function AI_TodoList() {
   const [backendUrl, setBackendUrl] = useState("");
   const [useRealtimeListener, setUseRealtimeListener] = useState(true);
 
+  // Demo mode state for non-logged-in users (starts empty)
+  const [demoTasks, setDemoTasks] = useState([]);
+
   // Local state for AI content (not stored in Firestore)
   const [aiContent, setAiContent] = useState({}); // taskId -> aiContent
   const [loadingStates, setLoadingStates] = useState({}); // taskId -> loading message
@@ -57,6 +60,20 @@ export default function AI_TodoList() {
     setBackendUrl(url || "Backend URL not configured");
     console.log("Backend URL:", url);
   }, []);
+
+  // Get current tasks based on user login status
+  const getCurrentTasks = () => {
+    return user ? tasks : demoTasks;
+  };
+
+  // Set current tasks based on user login status
+  const setCurrentTasks = (newTasks) => {
+    if (user) {
+      setTasks(newTasks);
+    } else {
+      setDemoTasks(newTasks);
+    }
+  };
 
   // Improved fallback method to fetch tasks
   const fetchTasksManually = useCallback(async () => {
@@ -171,28 +188,41 @@ export default function AI_TodoList() {
   // Refresh tasks manually
   const refreshTasks = useCallback(async () => {
     console.log("Manual refresh triggered");
-    await fetchTasksManually();
-  }, [fetchTasksManually]);
+    if (user) {
+      await fetchTasksManually();
+    }
+  }, [fetchTasksManually, user]);
 
-  // Add task to Firestore with immediate UI update
+  // Add task to Firestore with immediate UI update or demo mode
   const addTask = async () => {
-    if (!taskText.trim() || !user) return;
+    if (!taskText.trim()) return;
 
+    const newTask = {
+      id: user ? `temp-${Date.now()}` : `demo-${Date.now()}`,
+      userId: user?.uid || "demo-user",
+      text: taskText.trim(),
+      aiPrompt: aiPrompt.trim(),
+      imageUrl: imageUrl.trim(),
+      dueDate: dueDate ? new Date(dueDate) : null,
+      completed: false,
+      createdAt: new Date(),
+    };
+
+    // For demo mode (non-logged-in users)
+    if (!user) {
+      setDemoTasks((prevTasks) => [newTask, ...prevTasks]);
+      setTaskText("");
+      setAiPrompt("");
+      setImageUrl("");
+      setDueDate("");
+      return;
+    }
+
+    // For logged-in users
     try {
       console.log("Adding task for user:", user.uid);
 
-      const tempTask = {
-        id: `temp-${Date.now()}`,
-        userId: user.uid,
-        text: taskText.trim(),
-        aiPrompt: aiPrompt.trim(),
-        imageUrl: imageUrl.trim(),
-        dueDate: dueDate ? new Date(dueDate) : null,
-        completed: false,
-        createdAt: new Date(),
-      };
-
-      setTasks((prevTasks) => [tempTask, ...prevTasks]);
+      setTasks((prevTasks) => [newTask, ...prevTasks]);
 
       const docRef = await addDoc(collection(db, "tasks"), {
         userId: user.uid,
@@ -212,7 +242,7 @@ export default function AI_TodoList() {
       setDueDate("");
 
       setTasks((prevTasks) =>
-        prevTasks.filter((task) => task.id !== tempTask.id)
+        prevTasks.filter((task) => task.id !== newTask.id)
       );
 
       if (!useRealtimeListener) {
@@ -227,10 +257,10 @@ export default function AI_TodoList() {
     }
   };
 
-  // Delete task from Firestore with optimistic update
+  // Delete task from Firestore with optimistic update or demo mode
   const deleteTask = async (id) => {
-    if (!user || !id) {
-      alert("Invalid task or user");
+    if (!id) {
+      alert("Invalid task");
       return;
     }
 
@@ -238,13 +268,34 @@ export default function AI_TodoList() {
       return;
     }
 
+    const currentTasks = getCurrentTasks();
+    const taskToDelete = currentTasks.find((task) => task.id === id);
+
+    if (!taskToDelete) {
+      alert("Task not found");
+      return;
+    }
+
+    // For demo mode (non-logged-in users)
+    if (!user) {
+      setDemoTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+      setAiContent((prev) => {
+        const updated = { ...prev };
+        delete updated[id];
+        return updated;
+      });
+      setLoadingStates((prev) => {
+        const updated = { ...prev };
+        delete updated[id];
+        return updated;
+      });
+      if (editTaskId === id) cancelEdit();
+      return;
+    }
+
+    // For logged-in users
     try {
       console.log("Attempting to delete task:", id);
-
-      const taskToDelete = tasks.find((task) => task.id === id);
-      if (!taskToDelete) {
-        throw new Error("Task not found");
-      }
 
       if (taskToDelete.userId !== user.uid) {
         throw new Error("Unauthorized: Task doesn't belong to current user");
@@ -278,11 +329,23 @@ export default function AI_TodoList() {
     }
   };
 
-  // Toggle task completion with optimistic update
+  // Toggle task completion with optimistic update or demo mode
   const toggleCompletion = async (id) => {
-    const task = tasks.find((t) => t.id === id);
+    const currentTasks = getCurrentTasks();
+    const task = currentTasks.find((t) => t.id === id);
     if (!task) return;
 
+    // For demo mode (non-logged-in users)
+    if (!user) {
+      setDemoTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === id ? { ...t, completed: !t.completed } : t
+        )
+      );
+      return;
+    }
+
+    // For logged-in users
     try {
       console.log("Toggling completion for task:", id);
 
@@ -306,8 +369,17 @@ export default function AI_TodoList() {
     }
   };
 
-  // Update task AI prompt in Firestore
+  // Update task AI prompt in Firestore or demo mode
   const updateTaskAiPrompt = async (id, newPrompt) => {
+    // For demo mode (non-logged-in users)
+    if (!user) {
+      setDemoTasks((prevTasks) =>
+        prevTasks.map((t) => (t.id === id ? { ...t, aiPrompt: newPrompt } : t))
+      );
+      return;
+    }
+
+    // For logged-in users
     try {
       setTasks((prevTasks) =>
         prevTasks.map((t) => (t.id === id ? { ...t, aiPrompt: newPrompt } : t))
@@ -352,14 +424,19 @@ export default function AI_TodoList() {
   // Timer for updating remaining time display
   useEffect(() => {
     const interval = setInterval(() => {
-      setTasks((currentTasks) => [...currentTasks]);
+      if (user) {
+        setTasks((currentTasks) => [...currentTasks]);
+      } else {
+        setDemoTasks((currentTasks) => [...currentTasks]);
+      }
     }, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   // Mock AI functions for testing when backend is not available
   const mockAnalyzeTask = async (taskId) => {
-    const task = tasks.find((t) => t.id === taskId);
+    const currentTasks = getCurrentTasks();
+    const task = currentTasks.find((t) => t.id === taskId);
     if (!task || !task.aiPrompt?.trim()) {
       alert("Please add an AI prompt for this task first.");
       return;
@@ -394,7 +471,8 @@ export default function AI_TodoList() {
   };
 
   const analyzeTask = async (taskId) => {
-    const task = tasks.find((t) => t.id === taskId);
+    const currentTasks = getCurrentTasks();
+    const task = currentTasks.find((t) => t.id === taskId);
     if (!task || !task.aiPrompt?.trim()) {
       alert("Please add an AI prompt for this task first.");
       return;
@@ -538,6 +616,22 @@ export default function AI_TodoList() {
       return;
     }
 
+    const currentTasks = getCurrentTasks();
+
+    // For demo mode (non-logged-in users)
+    if (!user) {
+      setDemoTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === editTaskId
+            ? { ...t, text: editTaskText.trim(), aiPrompt: editAiPrompt.trim() }
+            : t
+        )
+      );
+      cancelEdit();
+      return;
+    }
+
+    // For logged-in users
     try {
       setTasks((prevTasks) =>
         prevTasks.map((t) =>
@@ -582,99 +676,105 @@ export default function AI_TodoList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center px-4">
         <div className="text-xl animate-pulse">Loading...</div>
       </div>
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">
-            Welcome to AI Todo List
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Please sign in to access your personalized todo list with AI
-            features.
-          </p>
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors font-medium mb-4"
-          >
-            🚀 Sign in with Google
-          </button>
-          <p className="text-sm text-gray-500">
-            Your data is securely stored and only accessible to you.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const currentTasks = getCurrentTasks();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 p-6 w-75vw">
-      <div className="max-w-5xl mx-auto">
-        <div className="absolute left-[2vw]">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 p-3 sm:p-4 md:p-6 flex justify-center">
+      <div className="w-[80vw] max-w-none">
+        {/* Back button - responsive positioning */}
+        <div className="mb-4 sm:mb-6">
           <Link
             to="/home"
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 font-medium transition-colors"
+            className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors text-sm sm:text-base"
           >
             <svg
-            className="w-4 h-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          Back to Dashboard
-        </Link>
+              className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 "
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Back to Dashboard
+          </Link>
         </div>
-        <div className="flex justify-between items-center mb-6 pt-[30px]">
+
+        {/* Demo Mode Warning - responsive */}
+        {!user && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 p-3 sm:p-4 rounded mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="text-yellow-700 font-medium text-sm sm:text-base">
+                  ⚠️ You are not logged in. Need to login to save your tasks.
+                </p>
+              </div>
+              <Link
+                to="/login"
+                className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600 transition-colors self-start sm:self-auto"
+              >
+                Login
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Header section - responsive */}
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-6 gap-4">
           <div>
-            <h2 className="text-4xl font-bold text-gray-800 mb-[20px] mt-[15px]">
+            <h2 className="text-4xl font-bold text-gray-800 mb-[20px] ">
               AI-Powered To-Do List
             </h2>
             <div className="flex gap-4 mt-2 text-sm">
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
-                Total: {tasks.length}
+                Total: {currentTasks.length}
               </span>
               <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
-                Completed: {tasks.filter((task) => task.completed).length}
+                Completed:{" "}
+                {currentTasks.filter((task) => task.completed).length}
               </span>
               <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full font-medium">
-                Pending: {tasks.filter((task) => !task.completed).length}
+                Pending: {currentTasks.filter((task) => !task.completed).length}
               </span>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={refreshTasks}
-              className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-xl hover:bg-blue-600 transition-colors"
-              title="Refresh tasks"
-            >
-              <FaRedo /> Refresh
-            </button>
-          </div>
+          
+          {/* Refresh button - responsive */}
+          {user && (
+            <div className="flex justify-center lg:justify-end">
+              <button
+                onClick={refreshTasks}
+                className="flex items-center gap-2 bg-blue-500 text-white px-3 sm:px-4 py-2 rounded-xl hover:bg-blue-600 transition-colors text-sm sm:text-base"
+                title="Refresh tasks"
+              >
+                <FaRedo className="text-xs sm:text-sm" /> 
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        {indexError && (
-          <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 rounded">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-yellow-700 font-medium">
+        {/* Error messages - responsive */}
+        {indexError && user && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 p-3 sm:p-4 mb-4 sm:mb-6 rounded">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex-1">
+                <p className="text-yellow-700 font-medium text-sm sm:text-base">
                   {indexError.includes("Index required")
                     ? "Database Index Required"
                     : "Database Issue"}
                 </p>
-                <p className="text-yellow-600 text-sm mt-1">
+                <p className="text-yellow-600 text-xs sm:text-sm mt-1">
                   {indexError.includes("Index required") ? (
                     <>
                       Please create the required index in Firebase Console.
@@ -682,7 +782,7 @@ export default function AI_TodoList() {
                         href="https://console.firebase.google.com/v1/r/project/fir-35d06/firestore/indexes?create_composite=Ckdwcm9qZWN0cy9maXItMzVkMDYvZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL3Rhc2tzL2luZGV4ZXMvXxABGgoKBnVzZXJJZBABGg0KCWNyZWF0ZWRBdBACGgwKCF9fbmFtZV9fEAI"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 underline ml-1"
+                        className="text-blue-600 underline ml-1 break-all"
                       >
                         Click here to create index
                       </a>
@@ -697,7 +797,7 @@ export default function AI_TodoList() {
               </div>
               <button
                 onClick={refreshTasks}
-                className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600 transition-colors"
+                className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600 transition-colors self-start sm:self-auto"
               >
                 Refresh
               </button>
@@ -705,24 +805,25 @@ export default function AI_TodoList() {
           </div>
         )}
 
+        {/* Development mode warning - responsive */}
         {!import.meta.env.VITE_BACKEND_URL && (
-          <div className="bg-blue-100 border-l-4 border-blue-500 p-4 mb-6 rounded">
-            <p className="text-blue-700 font-medium">Development Mode</p>
-            <p className="text-blue-600 text-sm mt-1">
-              Backend URL not configured. AI features will use mock responses
-              for testing.
+          <div className="bg-blue-100 border-l-4 border-blue-500 p-3 sm:p-4 mb-4 sm:mb-6 rounded">
+            <p className="text-blue-700 font-medium text-sm sm:text-base">Development Mode</p>
+            <p className="text-blue-600 text-xs sm:text-sm mt-1">
+              Backend URL not configured. AI features will use mock responses for testing.
             </p>
           </div>
         )}
 
-        <div className="bg-white shadow-2xl rounded-xl p-6 mb-10 space-y-4">
+        {/* Add task form - fully responsive */}
+        <div className="bg-white shadow-2xl rounded-xl p-4 sm:p-6 mb-6 sm:mb-10 space-y-3 sm:space-y-4 ">
           <input
             type="text"
             value={taskText}
             onChange={(e) => setTaskText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Enter task title..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+            className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm sm:text-base"
           />
           <input
             type="text"
@@ -738,49 +839,52 @@ export default function AI_TodoList() {
             onChange={(e) => setImageUrl(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Optional: Paste image URL"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+            className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm sm:text-base"
           />
           <input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+            className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm sm:text-base"
           />
           <button
             onClick={addTask}
             disabled={!taskText.trim()}
-            className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+            className="w-full py-2 sm:py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all text-sm sm:text-base"
           >
             ➕ Add Task
           </button>
         </div>
 
-        {tasksLoading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="text-gray-600 mt-2">Loading tasks...</p>
+        {/* Loading state - responsive */}
+        {tasksLoading && user && (
+          <div className="text-center py-6 sm:py-8">
+            <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base">Loading tasks...</p>
           </div>
         )}
 
+        {/* Tasks list - fully responsive */}
         {!tasksLoading && (
-          <ul className="space-y-6">
-            {tasks.map((task) => (
+          <ul className="space-y-4 sm:space-y-6">
+            {currentTasks.map((task) => (
               <li
                 key={task.id}
-                className={`group bg-white border-l-4 transition-all hover:shadow-xl rounded-xl p-5 ${
+                className={`group bg-white border-l-4 transition-all hover:shadow-xl rounded-xl p-4 sm:p-5 ${
                   task.completed
                     ? "border-green-400 opacity-70"
                     : "border-indigo-400"
                 }`}
               >
-                <div className="flex justify-between items-start mb-3">
+                {/* Task header - responsive layout */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-3">
                   {editTaskId === task.id ? (
-                    <div className="flex-1 space-y-3">
+                    <div className="flex-1 space-y-2 sm:space-y-3">
                       <input
                         type="text"
                         value={editTaskText}
                         onChange={(e) => setEditTaskText(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm sm:text-base"
                         placeholder="Task title..."
                       />
                       <input
@@ -788,14 +892,14 @@ export default function AI_TodoList() {
                         value={editAiPrompt}
                         onChange={(e) => setEditAiPrompt(e.target.value)}
                         placeholder="Edit AI prompt..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm sm:text-base"
                       />
                     </div>
                   ) : (
                     <>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <h3
-                          className={`text-xl font-semibold mb-1 ${
+                          className={`text-lg sm:text-xl font-semibold mb-1 break-words ${
                             task.completed
                               ? "line-through text-gray-400"
                               : "text-gray-800"
@@ -804,12 +908,14 @@ export default function AI_TodoList() {
                           {task.text}
                         </h3>
                         {task.aiPrompt && (
-                          <p className="text-sm text-gray-500 italic">
+                          <p className="text-xs sm:text-sm text-gray-500 italic break-words">
                             AI Prompt: {task.aiPrompt}
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-2 ml-4">
+                      
+                      {/* Action buttons - responsive */}
+                      <div className="flex gap-2 sm:ml-4 justify-end sm:justify-start">
                         <button
                           onClick={() => toggleCompletion(task.id)}
                           title="Toggle complete"
@@ -817,21 +923,21 @@ export default function AI_TodoList() {
                             task.completed
                               ? "bg-green-500 hover:bg-green-600"
                               : "bg-gray-300 hover:bg-green-500"
-                          } text-white`}
+                          } text-white text-sm sm:text-base`}
                         >
                           <FaCheck />
                         </button>
                         <button
                           onClick={() => startEdit(task)}
                           title="Edit task"
-                          className="bg-yellow-400 hover:bg-yellow-500 text-white p-2 rounded-full transition-colors"
+                          className="bg-yellow-400 hover:bg-yellow-500 text-white p-2 rounded-full transition-colors text-sm sm:text-base"
                         >
                           <FaEdit />
                         </button>
                         <button
                           onClick={() => deleteTask(task.id)}
                           title="Delete task"
-                          className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors"
+                          className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors text-sm sm:text-base"
                         >
                           <FaTrash />
                         </button>
@@ -840,12 +946,13 @@ export default function AI_TodoList() {
                   )}
                 </div>
 
+                {/* Task image - responsive */}
                 {task.imageUrl && (
                   <div className="mb-3">
                     <img
                       src={task.imageUrl}
                       alt="Task reference"
-                      className="rounded-xl max-h-64 object-cover w-full shadow-sm"
+                      className="rounded-xl max-h-48 sm:max-h-64 object-cover w-full shadow-sm"
                       onError={(e) => {
                         e.target.style.display = "none";
                       }}
@@ -853,28 +960,31 @@ export default function AI_TodoList() {
                   </div>
                 )}
 
-                <div className="text-sm text-gray-500 mb-3">
+                {/* Due date - responsive */}
+                <div className="text-xs sm:text-sm text-gray-500 mb-3">
                   ⏱ <strong>Due in:</strong> {getRemainingTime(task.dueDate)}
                 </div>
 
+                {/* Edit mode buttons - responsive */}
                 {editTaskId === task.id ? (
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <button
                       onClick={saveEdit}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors text-sm sm:text-base"
                     >
                       <FaSave /> Save
                     </button>
                     <button
                       onClick={cancelEdit}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-400 text-white rounded-xl hover:bg-gray-500 transition-colors"
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-400 text-white rounded-xl hover:bg-gray-500 transition-colors text-sm sm:text-base"
                     >
                       <FaTimes /> Cancel
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="flex flex-col sm:flex-row gap-3">
+                    {/* AI controls - responsive layout */}
+                    <div className="flex flex-col lg:flex-row gap-2 lg:gap-3">
                       <input
                         type="text"
                         value={task.aiPrompt || ""}
@@ -882,41 +992,47 @@ export default function AI_TodoList() {
                           updateTaskAiPrompt(task.id, e.target.value)
                         }
                         placeholder="Update AI prompt..."
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                        className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm sm:text-base"
                       />
-                      <button
-                        onClick={() => analyzeTask(task.id)}
-                        disabled={
-                          loadingStates[task.id] === "Analyzing..." ||
-                          !task.aiPrompt?.trim()
-                        }
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <FaRobot /> Analyze
-                      </button>
-                      {aiContent[task.id] && (
+                      
+                      {/* AI buttons - responsive stacking */}
+                      <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
                         <button
-                          onClick={() => summarizeTask(task.id)}
-                          disabled={loadingStates[task.id] === "Summarizing..."}
-                          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                          onClick={() => analyzeTask(task.id)}
+                          disabled={
+                            loadingStates[task.id] === "Analyzing..." ||
+                            !task.aiPrompt?.trim()
+                          }
+                          className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm sm:text-base whitespace-nowrap"
                         >
-                          <FaSync /> Summarize
+                          <FaRobot /> Analyze
                         </button>
-                      )}
+                        {aiContent[task.id] && (
+                          <button
+                            onClick={() => summarizeTask(task.id)}
+                            disabled={loadingStates[task.id] === "Summarizing..."}
+                            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm sm:text-base whitespace-nowrap"
+                          >
+                            <FaSync /> Summarize
+                          </button>
+                        )}
+                      </div>
                     </div>
 
+                    {/* Loading states - responsive */}
                     {loadingStates[task.id] && (
-                      <div className="text-sm text-yellow-600 italic font-medium">
+                      <div className="text-xs sm:text-sm text-yellow-600 italic font-medium">
                         {loadingStates[task.id]}
                       </div>
                     )}
 
+                    {/* AI content - responsive */}
                     {aiContent[task.id] && (
-                      <div className="bg-gradient-to-r from-gray-50 to-indigo-50 border border-gray-200 rounded-xl p-4 text-sm leading-relaxed">
+                      <div className="bg-gradient-to-r from-gray-50 to-indigo-50 border border-gray-200 rounded-xl p-3 sm:p-4 text-xs sm:text-sm leading-relaxed">
                         <span className="block mb-2 text-indigo-600 font-semibold">
                           🤖 AI Response:
                         </span>
-                        <div className="whitespace-pre-wrap text-gray-700">
+                        <div className="whitespace-pre-wrap text-gray-700 break-words">
                           {aiContent[task.id]}
                         </div>
                       </div>
@@ -928,11 +1044,12 @@ export default function AI_TodoList() {
           </ul>
         )}
 
-        {!tasksLoading && tasks.length === 0 && (
-          <div className="text-center py-10">
-            <div className="text-6xl mb-4">📝</div>
-            <div className="text-gray-600 text-xl mb-2">No tasks yet</div>
-            <div className="text-gray-500">
+        {/* Empty state - responsive */}
+        {!tasksLoading && currentTasks.length === 0 && (
+          <div className="text-center py-8 sm:py-10">
+            <div className="text-4xl sm:text-6xl mb-4">📝</div>
+            <div className="text-gray-600 text-lg sm:text-xl mb-2">No tasks yet</div>
+            <div className="text-gray-500 text-sm sm:text-base px-4">
               Add your first task above to get started!
             </div>
           </div>
