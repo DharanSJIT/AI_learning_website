@@ -12,6 +12,7 @@ import Chat from "./pages/Chat";   // 👈 Added Chat page
 import DashboardGrid from "./components/DashboardGrid";
 import LearningPath from "./components/LearningPath";
 import QuizGenerator from "./components/QuizGenerator";
+import QuizHistory from './components/QuizHistory';
 import Notes from "./components/Notes";
 import TodoList from "./components/TodoList";
 import ChatAssistant from "./components/ChatAssistant";
@@ -160,6 +161,7 @@ export default function App() {
           {/* Tool Routes */}
           <Route path="/learning-path" element={<LearningPath />} />
           <Route path="/quiz-generator" element={<QuizGenerator />} />
+          <Route path="/quiz-history" element={<QuizHistory />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/todo-list" element={<TodoList />} />
           <Route path="/mentor" element={<ChatAssistant user={user} />} />

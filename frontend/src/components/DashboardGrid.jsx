@@ -2,22 +2,23 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
-  HelpCircle,
-  StickyNote,
-  FileText,
-  TrendingUp,
-  Users,
-  Bookmark,
-  CheckSquare,
-  Settings,
-  Star,
-  ChevronRight,
-  Zap,
-  Brain,
-  Target,
-  Image as ImageIcon,
-  Search,
-  UserCheck,
+HelpCircle,
+StickyNote,
+FileText,
+TrendingUp,
+Users,
+Bookmark,
+CheckSquare,
+Settings,
+Star,
+ChevronRight,
+Zap,
+Brain,
+Target,
+Image as ImageIcon,
+Search,
+UserCheck,
+History, // 👈 Add this icon
 } from "lucide-react";
 
 // --- Data Constants (Moved outside the component for performance) ---
@@ -116,15 +117,24 @@ const tools = [
     description: "Save and organize important resources",
     badge: "Quick Access",
   },
+ {
+  id: 9,
+  label: "AI Mentor",
+  route: "/mentor",
+  gradient: "from-indigo-500 to-violet-600",
+  icon: Brain,
+  description: "Get personalized AI-powered guidance",
+  badge: "24/7 Support",
+},
   {
-    id: 9,
-    label: "AI Mentor",
-    route: "/mentor",
-    gradient: "from-green-400 to-emerald-600",
-    icon: Brain,
-    description: "Get personalized AI-powered guidance",
-    badge: "24/7 Support",
-  },
+  id: 10,
+  label: "Quiz History",
+  route: "/quiz-history",
+  gradient: "from-teal-400 to-cyan-600",
+  icon: History,
+  description: "Review your past quiz scores and performance",
+  badge: "Review",
+},
   {
     id: 12,
     label: "Settings",
@@ -134,6 +144,7 @@ const tools = [
     description: "Customize your learning experience",
     badge: "Personalize",
   },
+
 ];
 
 const stats = [

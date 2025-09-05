@@ -264,16 +264,31 @@ export default function ProgressTracker() {
     <>
       <div className="h-[90vh] overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          <Link
-            to="/home"
-            className="inline-block mb-8 text-sm text-indigo-600 font-medium hover:text-indigo-800 transition-colors"
-          >
-            ← Back to Dashboard
-          </Link>
+          <div className="absolute left-[3vw] top-24">
+            <Link
+              to="/home"
+              className="inline-flex items-center text-blue-600 hover:underline mb-4 font-medium"
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              Back to Dashboard
+            </Link>
+          </div>
 
           <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-800">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-800 mt-8">
                 Task Progress
               </h1>
               <p className="text-slate-600 mt-1">
@@ -282,9 +297,9 @@ export default function ProgressTracker() {
             </div>
             <button
               onClick={openModalForNew}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-200 active:scale-95"
+              className="flex items-center gap-2 px-4 mt-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-200 active:scale-95"
             >
-              <PlusIcon className="h-5 w-5" />
+              <PlusIcon className="h-5 w-5 " />
               Add New Task
             </button>
           </header>
