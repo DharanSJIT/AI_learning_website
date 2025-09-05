@@ -256,6 +256,7 @@ const PORT = process.env.PORT || 4000;
 // ---------- CORS Setup (FIXED) ----------
 const allowedOrigins = [
   'https://ai-powered-learning-web.vercel.app', // Production frontend
+  'https://ai-powered-learning-webs.vercel.app',
   'http://localhost:5173', // Vite dev server
   'http://localhost:3000', // Alternative local port
   'http://localhost:5174', // Alternative Vite port
