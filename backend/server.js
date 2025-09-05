@@ -253,9 +253,9 @@ async function checkOpenAIKey() {
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ---------- CORS Setup (FIXED) ----------
-const allowedOrigins = [ // Production frontend
-  'https://ai-powered-learning-webs.vercel.app/',
+// ---------- CORS Setup (COMPLETELY FIXED) ----------
+const allowedOrigins = [
+  'https://ai-powered-learning-webs.vercel.app', // ✅ FIXED: Removed trailing slash
   'http://localhost:5173', // Vite dev server
   'http://localhost:3000', // Alternative local port
   'http://localhost:5174', // Alternative Vite port
@@ -273,39 +273,60 @@ app.use(
   cors({
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
+      if (!origin) {
+        console.log('🔓 Allowing request with no origin (mobile/curl)');
+        return callback(null, true);
+      }
       
       // Check if origin is in allowed list
       const isAllowed = allowedOrigins.some(allowedOrigin => {
         if (typeof allowedOrigin === 'string') {
           return allowedOrigin === origin;
         }
-        // Handle regex patterns
+        // Handle regex patterns for development
         return allowedOrigin.test(origin);
       });
       
       if (isAllowed) {
+        console.log(`✅ CORS allowed origin: ${origin}`);
         callback(null, true);
       } else {
         console.log(`🚫 CORS blocked origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
+        console.log(`📝 Allowed origins: ${allowedOrigins.filter(o => typeof o === 'string').join(', ')}`);
+        callback(new Error(`CORS: Origin '${origin}' not allowed`));
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    allowedHeaders: [
+      "Content-Type", 
+      "Authorization", 
+      "X-Requested-With",
+      "Accept",
+      "Origin"
+    ],
     credentials: true,
+    optionsSuccessStatus: 200 // For legacy browser support
   })
 );
 
-// Handle preflight requests
+// Enhanced preflight handler
 app.options('*', (req, res) => {
+  console.log(`🔍 OPTIONS request from: ${req.headers.origin}`);
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours
   res.sendStatus(200);
 });
 
+// Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`📡 ${req.method} ${req.path} from ${req.headers.origin || 'unknown'}`);
+  next();
+});
 
 // ---------- Health Check ----------
 app.get("/", (req, res) => {
@@ -313,6 +334,7 @@ app.get("/", (req, res) => {
     message: "AI Learning Backend API",
     status: "Running",
     timestamp: new Date().toISOString(),
+    cors: "Enabled"
   });
 });
 
@@ -324,9 +346,20 @@ app.get("/health", async (req, res) => {
       status: "OK",
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || "development",
-      geminiKey: geminiStatus,
-      openaiKey: openaiStatus,
-      allowedOrigins: process.env.NODE_ENV === 'development' ? allowedOrigins.filter(o => typeof o === 'string') : ['Production URLs'],
+      cors: {
+        enabled: true,
+        allowedOrigins: process.env.NODE_ENV === 'development' 
+          ? allowedOrigins.filter(o => typeof o === 'string')
+          : ['Production URLs only']
+      },
+      apiKeys: {
+        gemini: geminiStatus,
+        openai: openaiStatus
+      },
+      server: {
+        port: PORT,
+        nodeVersion: process.version
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -342,27 +375,34 @@ app.use("/api/gemini", geminiRouter);
 app.use("/api/openai", openaiRouter);
 app.use("/api/ats", atsRouter);
 
-// ---------- Error Handling ----------
+// ---------- Enhanced Error Handling ----------
 app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
+  console.error("❌ Unhandled error:", err);
   
   // Handle CORS errors specifically
-  if (err.message === 'Not allowed by CORS') {
+  if (err.message && err.message.includes('CORS')) {
     return res.status(403).json({
-      error: "CORS: Origin not allowed",
-      message: "Your request origin is not in the allowed list",
+      error: "CORS Error",
+      message: err.message,
+      origin: req.headers.origin,
+      allowedOrigins: allowedOrigins.filter(o => typeof o === 'string')
     });
   }
   
+  // Handle other errors
   res.status(500).json({
     error: "Internal server error",
     details: process.env.NODE_ENV === "development" ? err.message : undefined,
+    timestamp: new Date().toISOString()
   });
 });
 
+// 404 handler
 app.use("*", (req, res) => {
   res.status(404).json({ 
     error: "Route not found",
+    path: req.originalUrl,
+    method: req.method,
     availableRoutes: [
       "GET /",
       "GET /health",
@@ -378,16 +418,29 @@ process.on("SIGINT", () => {
   console.log("\n🛑 Shutting down server gracefully...");
   process.exit(0);
 });
+
 process.on("SIGTERM", () => {
   console.log("\n🛑 Shutting down server gracefully...");
   process.exit(0);
 });
 
+process.on('uncaughtException', (error) => {
+  console.error('💥 Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 // ---------- Start Server ----------
 app.listen(PORT, async () => {
-  console.log(`🚀 Backend running on http://localhost:${PORT}`);
-  console.log(`🏥 Health check at http://localhost:${PORT}/health`);
+  console.log(`\n🚀 Backend server started successfully!`);
+  console.log(`📍 Server URL: http://localhost:${PORT}`);
+  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`📅 Started at: ${new Date().toISOString()}\n`);
 
   // Create uploads directory if it doesn't exist
   if (!fs.existsSync("uploads")) {
@@ -397,13 +450,26 @@ app.listen(PORT, async () => {
 
   // Check API keys on startup
   console.log("🔑 Checking API keys...");
-  console.log("Gemini API Key:", await checkGeminiKey());
-  console.log("OpenAI API Key:", await checkOpenAIKey());
+  const geminiStatus = await checkGeminiKey();
+  const openaiStatus = await checkOpenAIKey();
+  console.log(`   Gemini API: ${geminiStatus}`);
+  console.log(`   OpenAI API: ${openaiStatus}`);
   
-  // Log allowed origins for debugging
-  console.log("🔐 CORS allowed origins:", 
-    process.env.NODE_ENV === 'development' 
-      ? allowedOrigins.filter(o => typeof o === 'string')
-      : ['Production URLs only']
-  );
+  // Log CORS configuration
+  console.log("\n🔐 CORS Configuration:");
+  console.log("   Allowed Origins:");
+  allowedOrigins.filter(o => typeof o === 'string').forEach(origin => {
+    console.log(`   ✅ ${origin}`);
+  });
+  if (process.env.NODE_ENV === 'development') {
+    console.log("   ✅ All localhost ports (development mode)");
+  }
+  
+  console.log("\n🎯 Available endpoints:");
+  console.log("   GET  /");
+  console.log("   GET  /health");
+  console.log("   POST /api/gemini/*");
+  console.log("   POST /api/openai/*");
+  console.log("   POST /api/ats/ats-check");
+  console.log("\n✨ Server ready to handle requests!");
 });
