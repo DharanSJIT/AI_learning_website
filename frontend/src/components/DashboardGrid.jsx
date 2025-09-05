@@ -2,28 +2,34 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
-HelpCircle,
-StickyNote,
-FileText,
-TrendingUp,
-Users,
-Bookmark,
-CheckSquare,
-Settings,
-Star,
-ChevronRight,
-Zap,
-Brain,
-Target,
-Image as ImageIcon,
-Search,
-UserCheck,
-History, // 👈 Add this icon
+  HelpCircle,
+  StickyNote,
+  FileText,
+  TrendingUp,
+  Users,
+  Bookmark,
+  CheckSquare,
+  Settings,
+  Star,
+  ChevronRight,
+  Zap,
+  Brain,
+  Target,
+  Image as ImageIcon,
+  Search,
+  UserCheck,
+  History,
 } from "lucide-react";
 
-// --- Data Constants (Moved outside the component for performance) ---
+// --- Firebase Imports ---
+import { db } from "../firebase";
+import { collection, onSnapshot, query } from "firebase/firestore";
+
+// --- Import the LearningJourney component ---
+import LearningJourney from "./LearningJourney";
+
+// --- Data Constants ---
 const tools = [
-  // ... (same tool data as before)
   {
     id: 1,
     label: "Learning Path",
@@ -72,7 +78,7 @@ const tools = [
     badge: "AI Vision",
   },
   {
-    id: 10,
+    id: 6,
     label: "Document Analyzer",
     route: "/document-analyzer",
     gradient: "from-blue-500 to-indigo-600",
@@ -81,7 +87,7 @@ const tools = [
     badge: "AI-Powered",
   },
   {
-    id: 11,
+    id: 7,
     label: "ATS Resume Checker",
     route: "/ats-checker",
     gradient: "from-emerald-400 to-teal-600",
@@ -91,7 +97,7 @@ const tools = [
     featured: true,
   },
   {
-    id: 6,
+    id: 8,
     label: "Progress Tracker",
     route: "/progress-tracker",
     gradient: "from-purple-500 to-violet-600",
@@ -100,7 +106,7 @@ const tools = [
     badge: "Analytics",
   },
   {
-    id: 8,
+    id: 9,
     label: "To-Do List",
     route: "/todo-list",
     gradient: "from-indigo-500 to-purple-600",
@@ -109,7 +115,7 @@ const tools = [
     badge: "Productivity",
   },
   {
-    id: 7,
+    id: 10,
     label: "Bookbank",
     route: "/bookmarks",
     gradient: "from-rose-400 to-pink-500",
@@ -117,26 +123,26 @@ const tools = [
     description: "Save and organize important resources",
     badge: "Quick Access",
   },
- {
-  id: 9,
-  label: "AI Mentor",
-  route: "/mentor",
-  gradient: "from-indigo-500 to-violet-600",
-  icon: Brain,
-  description: "Get personalized AI-powered guidance",
-  badge: "24/7 Support",
-},
   {
-  id: 10,
-  label: "Quiz History",
-  route: "/quiz-history",
-  gradient: "from-teal-400 to-cyan-600",
-  icon: History,
-  description: "Review your past quiz scores and performance",
-  badge: "Review",
-},
+    id: 11,
+    label: "AI Mentor",
+    route: "/mentor",
+    gradient: "from-indigo-500 to-violet-600",
+    icon: Brain,
+    description: "Get personalized AI-powered guidance",
+    badge: "24/7 Support",
+  },
   {
     id: 12,
+    label: "Quiz History",
+    route: "/quiz-history",
+    gradient: "from-teal-400 to-cyan-600",
+    icon: History,
+    description: "Review your past quiz scores and performance",
+    badge: "Review",
+  },
+  {
+    id: 13,
     label: "Settings",
     route: "/settings",
     gradient: "from-gray-600 to-gray-800",
@@ -144,13 +150,6 @@ const tools = [
     description: "Customize your learning experience",
     badge: "Personalize",
   },
-
-];
-
-const stats = [
-  { label: "Tools Available", value: "12", icon: Zap },
-  { label: "AI Features", value: "8", icon: Brain },
-  { label: "Your Progress", value: "75%", icon: Target },
 ];
 
 // --- Reusable Tool Card Component ---
@@ -163,11 +162,9 @@ function ToolCard({
 }) {
   const navigate = useNavigate();
   const Icon = tool.icon;
-
   const cardClasses = isFeatured
     ? "h-52 rounded-3xl shadow-xl hover:shadow-2xl hover:-translate-y-2"
     : "h-40 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1";
-
   return (
     <div
       className="group relative"
@@ -187,7 +184,6 @@ function ToolCard({
           </>
         )}
         <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
         <div className="relative z-10 p-4 md:p-6 h-full flex flex-col justify-between text-white text-left">
           <div className="flex justify-between items-start">
             <Icon className={isFeatured ? "w-8 h-8 mb-2" : "w-7 h-7"} />
@@ -195,7 +191,6 @@ function ToolCard({
               {tool.badge}
             </span>
           </div>
-
           <div>
             <h3
               className={`font-bold ${
@@ -223,7 +218,6 @@ function ToolCard({
             )}
           </div>
         </div>
-
         {!isFeatured && (
           <div
             className={`absolute bottom-4 right-4 transform transition-all duration-300 ${
@@ -247,10 +241,75 @@ export default function DashboardGrid({ user }) {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // --- NEW: State to hold dynamic data ---
+  const [tasks, setTasks] = useState([]);
+  const [quizHistory, setQuizHistory] = useState([]);
+
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // --- NEW: Effect to fetch user data from Firestore ---
+  useEffect(() => {
+    if (user?.uid) {
+      // Listener for Progress Tracker tasks
+      const tasksQuery = query(collection(db, "users", user.uid, "tasks"));
+      const unsubscribeTasks = onSnapshot(tasksQuery, (snapshot) => {
+        setTasks(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      });
+
+      // Listener for Quiz Results
+      const quizQuery = query(collection(db, "users", user.uid, "quizResults"));
+      const unsubscribeQuizzes = onSnapshot(quizQuery, (snapshot) => {
+        setQuizHistory(
+          snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        );
+      });
+
+      return () => {
+        unsubscribeTasks();
+        unsubscribeQuizzes();
+      };
+    }
+  }, [user]);
+
+  // --- NEW: Dynamic calculations for the stats cards ---
+  const dynamicStats = useMemo(() => {
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter((task) => task.completed).length;
+    const overallProgress =
+      totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    // Static stats that can be calculated from the tools array
+    const toolsAvailable = tools.length;
+    const aiFeatures = tools.filter((t) =>
+      t.badge.toLowerCase().includes("ai")
+    ).length;
+
+    return [
+      { label: "Tools Available", value: toolsAvailable, icon: Zap },
+      { label: "AI Features", value: aiFeatures, icon: Brain },
+      { label: "Your Progress", value: `${overallProgress}%`, icon: Target },
+    ];
+  }, [tasks]);
+
+  // --- NEW: Dynamic stats for the Learning Journey component ---
+  const journeyStats = useMemo(() => {
+    const completedTasks = tasks.filter((task) => task.completed).length;
+    const totalTasks = tasks.length;
+    const overallProgress =
+      totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const quizzesTaken = quizHistory.length;
+    const totalPercentage = quizHistory.reduce(
+      (sum, result) => sum + result.percentage,
+      0
+    );
+    const averageScore =
+      quizzesTaken > 0 ? Math.round(totalPercentage / quizzesTaken) : 0;
+
+    return { completedTasks, quizzesTaken, averageScore, overallProgress };
+  }, [tasks, quizHistory]);
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -264,7 +323,6 @@ export default function DashboardGrid({ user }) {
     () => tools.filter((tool) => tool.featured),
     []
   );
-
   const filteredTools = useMemo(
     () =>
       tools.filter(
@@ -335,7 +393,8 @@ export default function DashboardGrid({ user }) {
                 </div>
               </div>
               <div className="flex flex-wrap gap-4">
-                {stats.map((stat, index) => (
+                {/* MODIFIED: Using dynamicStats here */}
+                {dynamicStats.map((stat, index) => (
                   <div
                     key={index}
                     className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
@@ -440,73 +499,10 @@ export default function DashboardGrid({ user }) {
             )}
           </section>
 
-          {/* Learning Progress & Footer CTA (can be further componentized if needed) */}
-          {/* ... (These sections remain the same as the original code) ... */}
-          <div className="mt-16 mb-12">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-3xl p-8 border border-blue-200 dark:border-gray-600">
-              <div className="flex flex-col lg:flex-row items-center gap-8">
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
-                    Your Learning Journey
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">
-                    Track your progress across different learning modules and
-                    see how far you've come!
-                  </p>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm text-gray-600 dark:text-gray-300">
-                        Completed 8 modules
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm text-gray-600 dark:text-gray-300">
-                        3 quizzes passed
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <span className="text-sm text-gray-600 dark:text-gray-300">
-                        2 certificates earned
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-col items-center gap-4">
-                  <div className="relative w-32 h-32">
-                    <svg
-                      className="w-32 h-32 transform -rotate-90"
-                      viewBox="0 0 36 36"
-                    >
-                      <path
-                        d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeDasharray="75, 100"
-                        className="text-blue-500"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-2xl font-bold text-gray-800 dark:text-white">
-                        75%
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => navigate("/progress-tracker")}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium transition-colors duration-300"
-                  >
-                    View Details
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* --- MODIFIED: Rendering the dynamic LearningJourney component --- */}
+          {user && <LearningJourney stats={journeyStats} />}
 
-          <div className="text-center">
+          <div className="text-center mt-16">
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-8 text-white relative overflow-hidden">
               <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
               <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-20"></div>
