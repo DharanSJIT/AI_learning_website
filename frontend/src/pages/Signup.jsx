@@ -23,7 +23,7 @@ export default function Signup() {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      navigate("/dashboard");
+      navigate("/home");
     } catch (err) {
       // Handle specific Firebase errors
       switch (err.code) {
@@ -51,7 +51,7 @@ export default function Signup() {
 
     try {
       await signInWithPopup(auth, googleProvider);
-      navigate("/dashboard");
+      navigate("/home");
     } catch (err) {
       switch (err.code) {
         case "auth/popup-closed-by-user":
