@@ -32,7 +32,7 @@ import Summarization from "./components/Summarization";
 import ImageExplanation from "./components/ImageExplanation";
 import DocumentAnalyzer from "./components/DocumentAnalyzer";
 import ATSResumeChecker from "./components/ATSResumeChecker";
-import ServicesComponent from "./components/services"; 
+import ServicesComponent from "./components/Services"; 
 import ExplorePage from "./components/ExplorePage";
 
 // ... (Profile, Services, Explore, Overviews components remain the same)
