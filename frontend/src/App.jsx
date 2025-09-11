@@ -30,6 +30,8 @@ import DocumentAnalyzer from "./components/DocumentAnalyzer";
 import ATSResumeChecker from "./components/ATSResumeChecker";
 import ServicesComponent from "./components/services"; 
 import ExplorePage from "./components/ExplorePage"; // This is your detailed Explore page
+import Footer from "./components/Footer";
+
 
 // --- Page Wrapper Components for Main Routes ---
 
@@ -126,6 +128,7 @@ function AppWrapper() {
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
+      <Footer />
     </div>
   );
 }
