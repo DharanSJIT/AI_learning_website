@@ -20,7 +20,7 @@ export default function Footer() {
   const navigate = useNavigate();
 
   return (
-    <footer className="bg-gray-200 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-[5vh]">
+    <footer className="bg-gray-200 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 ">
       <div className="max-w-7xl mx-auto py-12 px-6 lg:px-8">
         {/* ✨ FIX: Improved responsive grid for better alignment on all screen sizes */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -86,7 +86,7 @@ export default function Footer() {
               <FooterLink path="/dashboard">Home</FooterLink>
               <FooterLink path="/services">Services</FooterLink>
               <FooterLink path="/explore">Explore</FooterLink>
-              <FooterLink path="/JharkhandInfo">Overviews</FooterLink>
+              {/* <FooterLink path="/JharkhandInfo">Overviews</FooterLink> */}
             </div>
           </div>
 
