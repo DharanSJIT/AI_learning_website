@@ -3,12 +3,14 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
+  useLocation,
 } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "./firebase";
 
-// --- Import Navbar component ---
+// --- Import Layout Components ---
 import Navbar from "./components/Navbar"; 
+import Footer from "./components/Footer";
 
 // --- Import all your page and feature components ---
 import Welcome from "./pages/Welcome";
@@ -29,14 +31,11 @@ import ImageExplanation from "./components/ImageExplanation";
 import DocumentAnalyzer from "./components/DocumentAnalyzer";
 import ATSResumeChecker from "./components/ATSResumeChecker";
 import ServicesComponent from "./components/services"; 
-import ExplorePage from "./components/ExplorePage"; // This is your detailed Explore page
-import Footer from "./components/Footer";
-
+import ExplorePage from "./components/ExplorePage";
 
 // --- Page Wrapper Components for Main Routes ---
-
 const Profile = () => (
-  <div className="pt-8"> {/* Adjusted padding for consistency */}
+  <div className="pt-8">
     <div className="max-w-7xl mx-auto px-6 lg:px-8">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Profile</h1>
@@ -48,14 +47,12 @@ const Profile = () => (
   </div>
 );
 
-// ✨ FIX: This wrapper correctly uses your detailed ServicesComponent
 const Services = () => (
   <div className="pt-8">
     <ServicesComponent />
   </div>
 );
 
-// ✨ FIX: This wrapper now correctly uses your detailed ExplorePage component
 const Explore = () => (
   <div className="pt-8">
     <ExplorePage />
@@ -78,6 +75,10 @@ const Overviews = () => (
 
 function AppWrapper() {
   const [user, loading] = useAuthState(auth);
+  const location = useLocation();
+
+  // ✨ 1. Create an array of paths where the footer should be hidden
+  const pathsWithoutFooter = ['/', '/login', '/signup'];
 
   if (loading) {
     return (
@@ -91,12 +92,10 @@ function AppWrapper() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       
-      {/* ✨ FIX: Removed <ExplorePage /> from here to stop it from appearing on every page */}
-
-      <main className="pt-16"> {/* This padding prevents content from hiding under the fixed navbar */}
+      <main className="flex-grow pt-16">
         <Routes>
           {/* Auth & Public Routes */}
           <Route path="/" element={<Welcome />} />
@@ -105,10 +104,8 @@ function AppWrapper() {
           
           {/* Main App Routes from Navbar */}
           <Route path="/dashboard" element={<DashboardGrid user={user} />} />
-          {/* ✨ FIX: These routes now use the wrapper components for consistent UI */}
           <Route path="/services" element={<Services />} />
           <Route path="/explore" element={<Explore />} />
-          {/* ✨ FIX: Path changed to match the Navbar link */}
           <Route path="/JharkhandInfo" element={<Overviews />} />
           <Route path="/profile" element={<Profile />} />
           
@@ -128,7 +125,9 @@ function AppWrapper() {
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
-      <Footer />
+
+      {/* ✨ 2. Update the condition to check if the current path is in the array */}
+      {!pathsWithoutFooter.includes(location.pathname) && <Footer />}
     </div>
   );
 }

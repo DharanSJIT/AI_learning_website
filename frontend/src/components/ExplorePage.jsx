@@ -55,14 +55,14 @@ export default function AIExplorePage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900 mt-[-3vh]">
       <div className="relative z-10 p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           {/* Simple Header */}
           <header className="mb-16 text-center">
-            <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-6">
-              The Technology Behind Our Platform
-            </h1>
+            <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-black via-gray-700 to-gray bg-clip-text text-transparent mb-6">
+  The Technology Behind Our Platform
+</h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Learn how our platform leverages artificial intelligence to create a superior learning experience.
             </p>

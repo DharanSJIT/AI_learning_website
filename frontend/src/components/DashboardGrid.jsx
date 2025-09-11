@@ -14,6 +14,8 @@ import {
   MessageSquare,
   Users,
   TrendingUp,
+  Sparkles,
+  Briefcase,
 } from "lucide-react";
 
 // --- Firebase Imports ---
@@ -23,7 +25,7 @@ import { collection, onSnapshot, query } from "firebase/firestore";
 // --- Import the LearningJourney component ---
 import LearningJourney from "./LearningJourney";
 
-// --- Static Data for Components (defined outside the component for performance) ---
+// --- Static Data for Components ---
 const websiteFeatures = [
   {
     title: "AI-Powered Learning",
@@ -84,15 +86,22 @@ const servicesOverview = [
   },
 ];
 
+const keyFeatures = [
+    { icon: Sparkles, text: "13+ AI-Powered Tools to accelerate your learning." },
+    { icon: Target, text: "Personalized learning paths tailored to your specific goals." },
+    { icon: Zap, text: "Career-focused utilities like the ATS Resume Checker." },
+];
+
+const stats = [
+    { icon: Users, value: "10,000+", label: "Happy Learners" },
+    { icon: Briefcase, value: "90%", label: "Career Improvement" },
+    { icon: TrendingUp, value: "4.8/5", label: "Average Rating" },
+];
+
+
 // --- Helper Components ---
 function FeatureCard({ feature }) {
-  const accentColors = {
-    blue: "border-blue-200 dark:border-blue-800",
-    emerald: "border-emerald-200 dark:border-emerald-800",
-    purple: "border-purple-200 dark:border-purple-800",
-    amber: "border-amber-200 dark:border-amber-800",
-  };
-
+  const accentColors = { blue: "border-blue-200 dark:border-blue-800", emerald: "border-emerald-200 dark:border-emerald-800", purple: "border-purple-200 dark:border-purple-800", amber: "border-amber-200 dark:border-amber-800" };
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 ${accentColors[feature.accent]}`}>
       <div className="relative h-56 overflow-hidden bg-gray-100 dark:bg-gray-700">
@@ -109,16 +118,11 @@ function FeatureCard({ feature }) {
 
 function ServiceCategoryCard({ category, onExplore }) {
   const Icon = category.icon;
-  
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-200 dark:border-gray-700">
       <div className="flex items-start justify-between mb-4">
-        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-          <Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-        </div>
-        <button onClick={onExplore} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
-          <ChevronRight className="w-5 h-5" />
-        </button>
+        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg"><Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" /></div>
+        <button onClick={onExplore} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"><ChevronRight className="w-5 h-5" /></button>
       </div>
       <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{category.category}</h3>
       <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{category.description}</p>
@@ -140,6 +144,50 @@ function ServiceCategoryCard({ category, onExplore }) {
   );
 }
 
+function EnhancedCTA() {
+  const navigate = useNavigate();
+  return (
+    <section className="mt-16">
+      <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-10 text-center">Ready to Unlock Your Full Potential?</h3>
+      <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="absolute inset-0 opacity-50 dark:opacity-30"><div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px]"></div></div>
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-8">
+          <div className="text-center lg:text-left">
+            <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto lg:mx-0">From AI-powered learning paths to professional resume checkers, we have everything you need to succeed.</p>
+            <div className="space-y-4 mb-8">
+              {keyFeatures.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <div key={index} className="flex items-center gap-3 text-left">
+                    <div className="flex-shrink-0 bg-blue-100 dark:bg-blue-900/50 p-2 rounded-full"><Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" /></div>
+                    <span className="text-gray-700 dark:text-gray-200 font-medium">{feature.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <button onClick={() => navigate("/services")} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">Browse All Tools →</button>
+              <button onClick={() => navigate("/learning-path")} className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 shadow-lg hover:shadow-xl">Start Learning</button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {stats.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <div key={index} className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-200 dark:border-gray-700 text-center">
+                  <div className="flex justify-center mb-3"><div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-full text-white"><Icon className="w-6 h-6" /></div></div>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // --- Main Dashboard Component ---
 export default function DashboardGrid({ user }) {
   const navigate = useNavigate();
@@ -148,31 +196,20 @@ export default function DashboardGrid({ user }) {
   const [quizHistory, setQuizHistory] = useState([]);
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
     if (user?.uid) {
       const tasksQuery = query(collection(db, "users", user.uid, "tasks"));
-      const unsubscribeTasks = onSnapshot(tasksQuery, (snapshot) => {
-        setTasks(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-      });
-
+      const unsubscribeTasks = onSnapshot(tasksQuery, (snapshot) => setTasks(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))));
       const quizQuery = query(collection(db, "users", user.uid, "quizResults"));
-      const unsubscribeQuizzes = onSnapshot(quizQuery, (snapshot) => {
-        setQuizHistory(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-      });
-
-      return () => {
-        unsubscribeTasks();
-        unsubscribeQuizzes();
-      };
+      const unsubscribeQuizzes = onSnapshot(quizQuery, (snapshot) => setQuizHistory(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))));
+      return () => { unsubscribeTasks(); unsubscribeQuizzes(); };
     }
   }, [user]);
 
-  // ✨ FIX: This data is now correctly defined inside the component
-  // and has the `path` property for navigation.
   const dynamicStats = useMemo(() => {
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter((task) => task.completed).length;
@@ -186,19 +223,23 @@ export default function DashboardGrid({ user }) {
 
   const journeyStats = useMemo(() => {
     const completedTasks = tasks.filter((task) => task.completed).length;
+    const totalTasks = tasks.length;
+    const overallProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
     const quizzesTaken = quizHistory.length;
-    const totalPercentage = quizHistory.reduce((sum, result) => sum + result.percentage, 0);
+    const totalPercentage = quizHistory.reduce((sum, result) => sum + (result.percentage || 0), 0);
     const averageScore = quizzesTaken > 0 ? Math.round(totalPercentage / quizzesTaken) : 0;
-    return { completedTasks, quizzesTaken, averageScore };
+    return { completedTasks, quizzesTaken, averageScore, overallProgress };
   }, [tasks, quizHistory]);
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
     if (hour < 12) return "Good morning";
-    if (hour < 16) return "Good afternoon";
-    if (hour < 20) return "Good evening";
-    return "Good night";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
   };
+  
+  const formattedDate = useMemo(() => currentTime.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }), [currentTime]);
+  const formattedTime = useMemo(() => currentTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }), [currentTime]);
 
   const quickActions = [
     { label: "Continue Learning", action: () => navigate("/learning-path"), color: "bg-blue-600 hover:bg-blue-700" },
@@ -210,19 +251,14 @@ export default function DashboardGrid({ user }) {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
-          {/* Header Section */}
           <header className="mb-12">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div className="space-y-3">
-                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">
-                  {getGreeting()}, {user?.displayName || "Learner"}! 👋
-                </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
-                  Ready to continue your learning journey? Explore our suite of AI-powered tools.
-                </p>
+                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">{getGreeting()}, {user?.displayName || "Learner"}! 👋</h1>
+                <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl">Ready to continue your learning journey? Explore our suite of AI-powered tools.</p>
                 <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                  <span>{currentTime.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</span>
-                  <span>🕐 {currentTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span>{formattedDate}</span>
+                  <span>🕐 {formattedTime}</span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-4">
@@ -240,88 +276,34 @@ export default function DashboardGrid({ user }) {
               </div>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              {quickActions.map((action, index) => (
-                <button key={index} onClick={action.action} className={`${action.color} text-white px-6 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl`}>
-                  {action.label}
-                </button>
-              ))}
+              {quickActions.map((action, index) => (<button key={index} onClick={action.action} className={`${action.color} text-white px-6 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl`}>{action.label}</button>))}
             </div>
           </header>
-
-          {/* Services Overview Section */}
           <section className="mb-16">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Our Services</h2>
                 <p className="text-gray-600 dark:text-gray-300">Discover the tools available to enhance your learning.</p>
               </div>
-              <button onClick={() => navigate('/services')} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl whitespace-nowrap">
-                View All Services <ArrowRight className="w-4 h-4" />
-              </button>
+              <button onClick={() => navigate('/services')} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl whitespace-nowrap">View All Services <ArrowRight className="w-4 h-4" /></button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {servicesOverview.map((category, index) => (
-                <ServiceCategoryCard key={index} category={category} onExplore={() => navigate('/services')} />
-              ))}
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-lg">
-              <div className="text-center">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Explore All 13 Tools</h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
-                  From AI learning paths to resume checkers, we have everything you need to succeed.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button onClick={() => navigate("/services")} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl">
-                    Browse All Tools →
-                  </button>
-                  <button onClick={() => navigate("/learning-path")} className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 shadow-lg hover:shadow-xl">
-                    Start Learning
-                  </button>
-                </div>
-              </div>
+              {servicesOverview.map((category, index) => (<ServiceCategoryCard key={index} category={category} onExplore={() => navigate('/services')} />))}
             </div>
           </section>
-
-          {/* Website Overview Section */}
           <section className="mb-16">
-            {/* ✨ FIX: This section is now correctly centered */}
             <div className="flex justify-center text-center mb-8">
-                <div>
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Platform Overview</h2>
-                    <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                        Key features that make our platform unique and powerful.
-                    </p>
-                </div>
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Platform Overview</h2>
+                <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Key features that make our platform unique and powerful.</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {websiteFeatures.map((feature, index) => (
-                <FeatureCard key={index} feature={feature} />
-              ))}
+              {websiteFeatures.map((feature, index) => (<FeatureCard key={index} feature={feature} />))}
             </div>
           </section>
-
-          {/* Learning Journey Section */}
           {user && <LearningJourney stats={journeyStats} />}
-
-          {/* Final CTA Section */}
-          <div className="text-center mt-16">
-            <div className="bg-gray-900 dark:bg-gray-800 rounded-xl p-8 text-white relative overflow-hidden border border-gray-800 dark:border-gray-700">
-              <div className="relative z-10">
-                <h3 className="text-2xl font-bold mb-4">Ready to Transform Your Learning?</h3>
-                <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-                  Join thousands of learners who have enhanced their education and career with our platform.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button onClick={() => navigate("/learning-path")} className="bg-white text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl">
-                    Start Your Journey →
-                  </button>
-                  <button onClick={() => navigate("/services")} className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-gray-900 transition-all duration-300 shadow-lg hover:shadow-xl">
-                    Explore All Tools
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <EnhancedCTA />
         </div>
       </div>
     </div>

@@ -54,11 +54,10 @@ export default function Welcome() {
         "
       >
         <div className="flex-1 flex flex-col justify-center">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 via-purple-600 to-pink-500 leading-tight">
-            🎓 Welcome to <br className="hidden sm:block" />
-            <span className="sm:hidden"> </span>AI Learning
-          </h1>
-
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 via-purple-600 to-pink-500 leading-tight">
+  🎓 Welcome to <br className="hidden sm:block" />
+  <span className="sm:hidden"> </span>AI Learning
+</h1>
           <p className="text-base sm:text-lg text-slate-600 mb-6 sm:mb-8 lg:mb-10 leading-relaxed px-2 sm:px-0">
             An AI-powered personalized learning platform offering smart
             recommendations, interactive quizzes, and friendly chat assistance

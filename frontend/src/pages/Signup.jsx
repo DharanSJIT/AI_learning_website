@@ -67,7 +67,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 p-3 mt-[-2vh] pt-[8vh]">
+    <div className="min-h-[94vh] flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 p-3 mt-[-2vh] pt-[8vh]">
       <div className="absolute left-[2vw] top-[12vh]">
         <Link
           to="/home"

@@ -23,15 +23,17 @@ export default function LearningJourney({ stats }) {
   if (!stats) return null;
 
   return (
+    <div>
+      <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 text-center">
+              Your Learning Reports
+            </h2>
     <div className="mt-16 mb-12">
       <div className="bg-white dark:bg-gray-800/50 rounded-3xl p-8 shadow-xl border border-gray-200 dark:border-gray-700">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           
           {/* Left Side: Text Content & Stats */}
           <div className="flex-1">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Your Learning Journey
-            </h3>
+            
             <p className="text-gray-600 dark:text-gray-300 mb-5 max-w-lg">
               Here’s a snapshot of your achievements so far. Keep up the great work!
             </p>
@@ -101,6 +103,7 @@ export default function LearningJourney({ stats }) {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
