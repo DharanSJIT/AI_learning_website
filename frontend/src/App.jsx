@@ -7,7 +7,7 @@ import {
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "./firebase";
 
-// --- 👇 CORRECTED IMPORT PATH FOR NAVBAR 👇 ---
+// --- Import Navbar component ---
 import Navbar from "./components/Navbar"; 
 
 // --- Import all your page and feature components ---
@@ -29,33 +29,60 @@ import Summarization from "./components/Summarization";
 import ImageExplanation from "./components/ImageExplanation";
 import DocumentAnalyzer from "./components/DocumentAnalyzer";
 import ATSResumeChecker from "./components/ATSResumeChecker";
+import ServicesComponent from "./components/services"; // Renamed import to avoid conflict
 
-// Placeholder components for the new routes
+// Page components for navigation routes
 const Profile = () => (
-  <div className="p-8">
-    <h1 className="text-3xl font-bold text-slate-800">Profile Page</h1>
-    <p className="mt-2 text-slate-600">User profile information will be displayed here.</p>
+  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Profile</h1>
+        <p className="text-gray-600 dark:text-gray-300">
+          User profile information and account settings will be displayed here.
+        </p>
+      </div>
+    </div>
   </div>
 );
 
 const Services = () => (
-  <div className="p-8">
-    <h1 className="text-3xl font-bold text-slate-800">Services Page</h1>
-    <p className="mt-2 text-slate-600">Details about the services offered will be here.</p>
+  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Our Services</h1>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">
+          Explore our comprehensive suite of AI-powered learning and career development tools.
+        </p>
+        {/* You can replace this with your actual Services component */}
+        <ServicesComponent />
+      </div>
+    </div>
   </div>
 );
 
 const Explore = () => (
-  <div className="p-8">
-    <h1 className="text-3xl font-bold text-slate-800">Explore Page</h1>
-    <p className="mt-2 text-slate-600">Content to explore will be available here.</p>
+  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Explore</h1>
+        <p className="text-gray-600 dark:text-gray-300">
+          Discover new learning opportunities, trending topics, and featured content.
+        </p>
+      </div>
+    </div>
   </div>
 );
 
 const Overviews = () => (
-  <div className="p-8">
-    <h1 className="text-3xl font-bold text-slate-800">Overviews Page</h1>
-    <p className="mt-2 text-slate-600">This is the page for general overviews.</p>
+  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Overviews</h1>
+        <p className="text-gray-600 dark:text-gray-300">
+          General overviews, summaries, and analytical insights are available here.
+        </p>
+      </div>
+    </div>
   </div>
 );
 
@@ -64,14 +91,17 @@ function AppWrapper() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-50">
-        <div className="text-xl font-medium text-slate-600">Loading...</div>
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+          <div className="text-xl font-medium text-gray-600 dark:text-gray-300">Loading...</div>
+        </div>
       </div>
     );
   }
   
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
 
       <main className="pt-16">
@@ -80,11 +110,10 @@ function AppWrapper() {
           <Route path="/" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-           {/* <Route path="/home" element={<Navigate to="/dashboard" />} /> */}
-          {/*  */}
+          
           {/* Main App Routes from Navbar */}
           <Route path="/dashboard" element={<DashboardGrid user={user} />} />
-          <Route path="/services" element={<Services />} />
+          <Route path="/services" element={<ServicesComponent />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/overviews" element={<Overviews />} />
           <Route path="/profile" element={<Profile />} />
