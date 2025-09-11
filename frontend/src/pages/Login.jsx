@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-// --- Imports for Firebase and navigation are removed, as App.jsx now handles this ---
+import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { auth } from "../firebase";
 
 const LockIcon = () => (
   <svg
@@ -19,12 +20,12 @@ const LockIcon = () => (
   </svg>
 );
 
-// --- The component now accepts props from App.jsx ---
-export default function Login({ onEmailLogin, onGoogleLogin }) {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -32,11 +33,12 @@ export default function Login({ onEmailLogin, onGoogleLogin }) {
     setLoading(true);
 
     try {
-      // --- Call the function passed down from App.jsx ---
-      await onEmailLogin(email, password);
-      // Navigation and success toast are now handled by the parent
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate("/dashboard");
     } catch (err) {
-      // Improved, user-friendly error handling
+      console.error("Login error:", err);
+      
+      // Improved error handling
       switch (err.code) {
         case "auth/user-not-found":
         case "auth/wrong-password":
@@ -46,8 +48,11 @@ export default function Login({ onEmailLogin, onGoogleLogin }) {
         case "auth/invalid-email":
           setError("Please enter a valid email address.");
           break;
+        case "auth/too-many-requests":
+          setError("Too many failed login attempts. Please try again later or reset your password.");
+          break;
         default:
-          setError("An unexpected error occurred during login.");
+          setError(`Login failed: ${err.message}`);
       }
     } finally {
       setLoading(false);
@@ -59,22 +64,38 @@ export default function Login({ onEmailLogin, onGoogleLogin }) {
     setLoading(true);
 
     try {
-      // --- Call the function passed down from App.jsx ---
-      await onGoogleLogin();
-      // Navigation and success toast are now handled by the parent
+      const provider = new GoogleAuthProvider();
+      // Add scopes if needed
+      provider.addScope('email');
+      provider.addScope('profile');
+      
+      // Set custom parameters
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      
+      await signInWithPopup(auth, provider);
+      navigate("/dashboard");
     } catch (err) {
-      setError("Failed to sign in with Google. Please try again.");
+      console.error("Google login error:", err);
+      
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError("Login canceled. Please try again.");
+      } else if (err.code === 'auth/popup-blocked') {
+        setError("Popup was blocked. Please allow popups for this site.");
+      } else {
+        setError(`Google sign-in failed: ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Your entire preferred design is preserved below ---
   return (
     <div className="min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 p-4 pt-[4vh]">
       <div className="absolute left-[2vw] top-[12vh]">
         <Link
-          to="/home" // Changed to /home to match App.jsx routing
+          to="/"
           className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 font-medium transition-colors"
         >
           <svg
@@ -90,7 +111,7 @@ export default function Login({ onEmailLogin, onGoogleLogin }) {
               d="M15 19l-7-7 7-7"
             />
           </svg>
-          Back to Dashboard
+          Back to Home
         </Link>
       </div>
       <div className="w-full max-w-md p-8 bg-white rounded-3xl shadow-2xl border border-gray-100 transform hover:shadow-3xl transition-all duration-300 ease-in-out">

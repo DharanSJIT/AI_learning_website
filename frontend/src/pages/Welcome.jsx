@@ -66,7 +66,7 @@ export default function Welcome() {
           </p>
 
           <button
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/dashboard")}
             className="
               relative
               inline-block
