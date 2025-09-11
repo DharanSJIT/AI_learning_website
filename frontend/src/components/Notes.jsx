@@ -19,7 +19,7 @@ const Notes = () => {
       {/* Back to Dashboard */}
       <div className="absolute left-[3vw] ">
         <Link
-          to="/home"
+          to="/services"
           className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 mb-6 font-medium transition-colors"
         >
           <svg

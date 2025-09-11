@@ -690,7 +690,7 @@ export default function AI_TodoList() {
         {/* Back button - responsive positioning */}
         <div className="mb-4 sm:mb-6">
           <Link
-            to="/home"
+            to="/services"
             className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors text-sm sm:text-base"
           >
             <svg

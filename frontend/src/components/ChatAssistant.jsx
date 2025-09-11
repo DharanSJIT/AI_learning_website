@@ -175,7 +175,7 @@ export default function ChatAssistant({ user }) {
       <div className="max-w-5xl mx-auto">
         <div className="absolute left-[3vw] top-[13vh]">
         <Link
-          to="/home"
+          to="/services"
           className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-6 font-medium transition-colors group"
         >
           <svg

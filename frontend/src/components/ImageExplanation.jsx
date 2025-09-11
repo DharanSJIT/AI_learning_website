@@ -151,7 +151,7 @@ export default function ImageExplanation() {
 
       <div className="max-w-6xl mx-auto pt-4">
         <Link
-          to="/home"
+          to="/services"
           className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 font-medium transition-colors"
         >
           <svg

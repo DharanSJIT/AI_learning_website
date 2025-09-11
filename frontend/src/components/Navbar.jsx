@@ -120,11 +120,9 @@ export default function Navbar() {
 
   const handleNavigation = (path) => {
     // Redirect non-logged-in users from dashboard to home page
-    if (path === '/dashboard' && !user) {
-        navigate('/');
-    } else {
+    
         navigate(path);
-    }
+    
     setIsMobileMenuOpen(false);
     setIsDropdownOpen(false);
   };

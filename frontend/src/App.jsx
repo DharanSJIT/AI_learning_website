@@ -12,7 +12,6 @@ import Navbar from "./components/Navbar";
 
 // --- Import all your page and feature components ---
 import Welcome from "./pages/Welcome";
-import Chat from "./pages/Chat";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import DashboardGrid from "./components/DashboardGrid";
@@ -29,11 +28,13 @@ import Summarization from "./components/Summarization";
 import ImageExplanation from "./components/ImageExplanation";
 import DocumentAnalyzer from "./components/DocumentAnalyzer";
 import ATSResumeChecker from "./components/ATSResumeChecker";
-import ServicesComponent from "./components/services"; // Renamed import to avoid conflict
+import ServicesComponent from "./components/services"; 
+import ExplorePage from "./components/ExplorePage"; // This is your detailed Explore page
 
-// Page components for navigation routes
+// --- Page Wrapper Components for Main Routes ---
+
 const Profile = () => (
-  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+  <div className="pt-8"> {/* Adjusted padding for consistency */}
     <div className="max-w-7xl mx-auto px-6 lg:px-8">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Profile</h1>
@@ -45,36 +46,22 @@ const Profile = () => (
   </div>
 );
 
+// ✨ FIX: This wrapper correctly uses your detailed ServicesComponent
 const Services = () => (
-  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-    <div className="max-w-7xl mx-auto px-6 lg:px-8">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Our Services</h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
-          Explore our comprehensive suite of AI-powered learning and career development tools.
-        </p>
-        {/* You can replace this with your actual Services component */}
-        <ServicesComponent />
-      </div>
-    </div>
+  <div className="pt-8">
+    <ServicesComponent />
   </div>
 );
 
+// ✨ FIX: This wrapper now correctly uses your detailed ExplorePage component
 const Explore = () => (
-  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-    <div className="max-w-7xl mx-auto px-6 lg:px-8">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Explore</h1>
-        <p className="text-gray-600 dark:text-gray-300">
-          Discover new learning opportunities, trending topics, and featured content.
-        </p>
-      </div>
-    </div>
+  <div className="pt-8">
+    <ExplorePage />
   </div>
 );
 
 const Overviews = () => (
-  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+  <div className="pt-8">
     <div className="max-w-7xl mx-auto px-6 lg:px-8">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Overviews</h1>
@@ -85,6 +72,7 @@ const Overviews = () => (
     </div>
   </div>
 );
+
 
 function AppWrapper() {
   const [user, loading] = useAuthState(auth);
@@ -103,8 +91,10 @@ function AppWrapper() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
+      
+      {/* ✨ FIX: Removed <ExplorePage /> from here to stop it from appearing on every page */}
 
-      <main className="pt-16">
+      <main className="pt-16"> {/* This padding prevents content from hiding under the fixed navbar */}
         <Routes>
           {/* Auth & Public Routes */}
           <Route path="/" element={<Welcome />} />
@@ -113,9 +103,11 @@ function AppWrapper() {
           
           {/* Main App Routes from Navbar */}
           <Route path="/dashboard" element={<DashboardGrid user={user} />} />
-          <Route path="/services" element={<ServicesComponent />} />
+          {/* ✨ FIX: These routes now use the wrapper components for consistent UI */}
+          <Route path="/services" element={<Services />} />
           <Route path="/explore" element={<Explore />} />
-          <Route path="/overviews" element={<Overviews />} />
+          {/* ✨ FIX: Path changed to match the Navbar link */}
+          <Route path="/JharkhandInfo" element={<Overviews />} />
           <Route path="/profile" element={<Profile />} />
           
           {/* All Feature Routes */}
@@ -132,7 +124,6 @@ function AppWrapper() {
           <Route path="/image-analysis" element={<ImageExplanation />} />
           <Route path="/document-analyzer" element={<DocumentAnalyzer />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/chat" element={<Chat />} />
         </Routes>
       </main>
     </div>

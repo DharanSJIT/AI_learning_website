@@ -67,7 +67,7 @@ export default function Settings({ onThemeChange, initialDarkMode = false }) {
         {/* Back to Dashboard Button */}
         <div className="absolute left-[3vw] ">
         <Link
-          to="/home"
+          to="/dashboard"
           className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-6 font-medium transition-colors group"
         >
           <svg

@@ -266,7 +266,7 @@ export default function ProgressTracker() {
         <div className="max-w-4xl mx-auto">
           <div className="absolute left-[3vw] top-24">
             <Link
-              to="/home"
+              to="/services"
               className="inline-flex items-center text-blue-600 hover:underline mb-4 font-medium"
             >
               <svg

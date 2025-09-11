@@ -67,7 +67,7 @@ export default function Bookmarks() {
       <div className="max-w-7xl mx-auto">
         {/* Back to Dashboard Button */}
         <Link
-          to="/home"
+          to="/services"
           className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-6 font-medium transition-colors group"
         >
           <svg

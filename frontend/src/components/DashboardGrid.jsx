@@ -28,7 +28,7 @@ const websiteFeatures = [
   {
     title: "AI-Powered Learning",
     description: "Our platform uses advanced AI to personalize your learning experience, adapt to your pace, and provide intelligent feedback.",
-    image: "https://images.unsplash.com/photo-1593720219276-0b1e1764b85c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format=fit=crop&w=600&h=450&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWHNzJPH7GljmjgOmHscqnA7AvakdwMtkwBg&s",
     accent: "blue",
   },
   {

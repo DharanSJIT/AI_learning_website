@@ -140,7 +140,7 @@ Do NOT use markdown (** or *), just plain text.`;
       <div className="max-w-4xl mx-auto">
         {/* Back Link */}
         <Link
-          to="/home"
+          to="/services"
           className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 font-medium transition-colors"
         >
           <svg 
