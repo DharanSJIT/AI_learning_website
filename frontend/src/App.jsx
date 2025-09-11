@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "./firebase";
@@ -11,6 +12,7 @@ import { auth } from "./firebase";
 // --- Import Layout Components ---
 import Navbar from "./components/Navbar"; 
 import Footer from "./components/Footer";
+import Notification from "./components/Notification";
 
 // --- Import all your page and feature components ---
 import Welcome from "./pages/Welcome";
@@ -33,52 +35,48 @@ import ATSResumeChecker from "./components/ATSResumeChecker";
 import ServicesComponent from "./components/services"; 
 import ExplorePage from "./components/ExplorePage";
 
-// --- Page Wrapper Components for Main Routes ---
-const Profile = () => (
-  <div className="pt-8">
-    <div className="max-w-7xl mx-auto px-6 lg:px-8">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Profile</h1>
-        <p className="text-gray-600 dark:text-gray-300">
-          User profile information and account settings will be displayed here.
-        </p>
-      </div>
-    </div>
-  </div>
-);
-
-const Services = () => (
-  <div className="pt-8">
-    <ServicesComponent />
-  </div>
-);
-
-const Explore = () => (
-  <div className="pt-8">
-    <ExplorePage />
-  </div>
-);
-
-const Overviews = () => (
-  <div className="pt-8">
-    <div className="max-w-7xl mx-auto px-6 lg:px-8">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Overviews</h1>
-        <p className="text-gray-600 dark:text-gray-300">
-          General overviews, summaries, and analytical insights are available here.
-        </p>
-      </div>
-    </div>
-  </div>
-);
+// ... (Profile, Services, Explore, Overviews components remain the same)
+const Profile = () => ( <div className="pt-8"><div className="max-w-7xl mx-auto px-6 lg:px-8"><div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8"><h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Profile</h1><p className="text-gray-600 dark:text-gray-300">User profile information and account settings will be displayed here.</p></div></div></div> );
+const Services = () => ( <div className="pt-8"><ServicesComponent /></div> );
+const Explore = () => ( <div className="pt-8"><ExplorePage /></div> );
+const Overviews = () => ( <div className="pt-8"><div className="max-w-7xl mx-auto px-6 lg:px-8"><div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8"><h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Overviews</h1><p className="text-gray-600 dark:text-gray-300">General overviews, summaries, and analytical insights are available here.</p></div></div></div> );
 
 
 function AppWrapper() {
   const [user, loading] = useAuthState(auth);
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  const [notification, setNotification] = useState({ message: '', type: '', visible: false });
+  
+  // ✨ FIX: Use a ref to track the previous user state to detect a true logout
+  const previousUser = useRef(user);
 
-  // ✨ 1. Create an array of paths where the footer should be hidden
   const pathsWithoutFooter = ['/', '/login', '/signup'];
+
+  // ✨ FIX: This useEffect is now more robust for handling notifications
+  useEffect(() => {
+    // 1. Don't show any notifications while the auth state is loading
+    if (loading) {
+      return;
+    }
+
+    // 2. Detect a true LOGOUT event (had a user, but now doesn't)
+    if (previousUser.current && !user) {
+      setNotification({ message: 'Logged out successfully!', type: 'error', visible: true });
+    }
+
+    // 3. Detect a LOGIN/SIGNUP event from navigation state
+    if (location.state?.message) {
+      setNotification({ message: location.state.message, type: 'success', visible: true });
+      // Clear the state so the message doesn't reappear
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+
+    // 4. Update the ref for the next render
+    previousUser.current = user;
+
+  }, [user, loading, location, navigate]);
 
   if (loading) {
     return (
@@ -95,21 +93,26 @@ function AppWrapper() {
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       
+      <Notification 
+        notification={notification} 
+        onClose={() => setNotification({ ...notification, visible: false })}
+      />
+      
       <main className="flex-grow pt-16">
         <Routes>
-          {/* Auth & Public Routes */}
+          {/* Auth Routes */}
           <Route path="/" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           
-          {/* Main App Routes from Navbar */}
+          {/* Main App Routes */}
           <Route path="/dashboard" element={<DashboardGrid user={user} />} />
           <Route path="/services" element={<Services />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/JharkhandInfo" element={<Overviews />} />
           <Route path="/profile" element={<Profile />} />
           
-          {/* All Feature Routes */}
+          {/* Feature Routes */}
           <Route path="/learning-path" element={<LearningPath />} />
           <Route path="/quiz-generator" element={<QuizGenerator />} />
           <Route path="/quiz-history" element={<QuizHistory />} />
@@ -126,7 +129,6 @@ function AppWrapper() {
         </Routes>
       </main>
 
-      {/* ✨ 2. Update the condition to check if the current path is in the array */}
       {!pathsWithoutFooter.includes(location.pathname) && <Footer />}
     </div>
   );

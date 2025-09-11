@@ -123,11 +123,9 @@ export default function Navbar() {
   };
 
   const handleNavigation = (path) => {
-    if (path === '/dashboard' && !user) {
-        navigate('/');
-    } else {
+     
         navigate(path);
-    }
+    
     setIsMobileMenuOpen(false);
     setIsDropdownOpen(false);
   };
