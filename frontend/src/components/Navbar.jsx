@@ -49,7 +49,7 @@ const navigationItems = [
     { path: "/dashboard", label: "Home", icon: HomeIcon },
     { path: "/services", label: "Services", icon: SparklesIcon },
     { path: "/explore", label: "Explore", icon: GlobeAltIcon },
-    { path: "/JharkhandInfo", label: "Overviews", icon: BookOpenIcon },
+    // { path: "/JharkhandInfo", label: "Overviews", icon: BookOpenIcon },
 ];
 
 export default function Navbar() {
