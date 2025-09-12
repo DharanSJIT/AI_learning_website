@@ -344,7 +344,7 @@ export default function DashboardGrid({ user }) {
     return [
       {
         label: "Tools Available",
-        value: 13,
+        value: 12,
         icon: Zap,
         color: "bg-blue-500",
         path: "/services",

@@ -35,6 +35,8 @@ import DocumentAnalyzer from "./components/DocumentAnalyzer";
 import ATSResumeChecker from "./components/ATSResumeChecker";
 import ServicesComponent from "./components/Services";
 import ExplorePage from "./components/ExplorePage";
+import HelpCenter from './pages/HelpCenter';
+import FaqPage from './pages/FaqPage';
 
 
 const Profile = () => ( <div className="pt-8"><div className="max-w-7xl mx-auto px-6 lg:px-8"><div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8"><h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Profile</h1><p className="text-gray-600 dark:text-gray-300">User profile information and account settings will be displayed here.</p></div></div></div> );
@@ -123,6 +125,8 @@ function AppWrapper() {
           <Route path="/image-analysis" element={<ImageExplanation />} />
           <Route path="/document-analyzer" element={<DocumentAnalyzer />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/help-center" element={<HelpCenter />} />
+          <Route path="/faq" element={<FaqPage />} />
         </Routes>
       </main>
 

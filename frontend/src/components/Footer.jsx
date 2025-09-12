@@ -16,13 +16,23 @@ const FooterLink = ({ path, children }) => {
   );
 };
 
+// Reusable component for disabled links
+const DisabledLink = ({ children }) => (
+  <span
+    className="text-gray-400 dark:text-gray-500 cursor-not-allowed"
+    title="Coming Soon!"
+  >
+    {children}
+  </span>
+);
+
+
 export default function Footer() {
   const navigate = useNavigate();
 
   return (
     <footer className="bg-gray-200 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 ">
       <div className="max-w-7xl mx-auto py-12 px-6 lg:px-8">
-        {/* ✨ FIX: Improved responsive grid for better alignment on all screen sizes */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Column 1: Brand and Socials */}
           <div className="space-y-4">
@@ -48,7 +58,6 @@ export default function Footer() {
                 className="text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-white transition-colors"
                 aria-label="WhatsApp"
               >
-                {/* ✨ 2. Replace the Phone icon with the new WhatsApp icon */}
                 <SiWhatsapp className="w-5 h-5" />
               </a>
               <a
@@ -86,7 +95,6 @@ export default function Footer() {
               <FooterLink path="/dashboard">Home</FooterLink>
               <FooterLink path="/services">Services</FooterLink>
               <FooterLink path="/explore">Explore</FooterLink>
-              {/* <FooterLink path="/JharkhandInfo">Overviews</FooterLink> */}
             </div>
           </div>
 
@@ -96,8 +104,9 @@ export default function Footer() {
               Resources
             </h3>
             <div className="flex flex-col space-y-3 items-start">
-              <FooterLink>FAQ</FooterLink>
-              <FooterLink>Blog</FooterLink>
+              {/* ✨ UPDATED LINKS ✨ */}
+              <FooterLink path="/faq">FAQ</FooterLink>
+              <DisabledLink>Blog</DisabledLink>
               <a
                 href="https://www.dharanportfolio.xyz/"
                 target="_blank"
