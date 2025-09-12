@@ -106,7 +106,7 @@ export default function Footer() {
             <div className="flex flex-col space-y-3 items-start">
               {/* ✨ UPDATED LINKS ✨ */}
               <FooterLink path="/faq">FAQ</FooterLink>
-              <DisabledLink>Blog</DisabledLink>
+              <FooterLink path="/blog">Blog</FooterLink>
               <a
                 href="https://www.dharanportfolio.xyz/"
                 target="_blank"
