@@ -109,7 +109,7 @@ const Summarization = () => {
       : 0;
 
   return (
-    <div className="min-h-[90vh]  bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
+    <div className="min-h-[90vh]  bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4 pb-[8vh]">
       <div className="max-w-7xl mx-auto">
         {/* Back to Dashboard Button */}
         <div className="mb-6">

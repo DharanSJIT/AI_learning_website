@@ -69,7 +69,7 @@ export default function AIExplorePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 mt-[-3vh]">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 mt-[-3vh] mb-[-3vh]">
       <div className="relative z-10 p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           {/* Enhanced Header */}

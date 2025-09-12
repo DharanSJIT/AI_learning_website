@@ -333,7 +333,7 @@ export default function Services() {
   );
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 mt-[-5vh]">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 mt-[-5vh] mb-[4vh]">
       <div className="p-6 sm:p-8 lg:p-12">
         <div className="max-w-7xl mx-auto">
           {/* --- Header Section --- */}

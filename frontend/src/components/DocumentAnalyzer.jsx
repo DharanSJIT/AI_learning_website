@@ -301,7 +301,7 @@ ${questionsResponse}
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4 md:p-6 mb-[5vh]">
       <div className="max-w-7xl mx-auto">
         
         {/* 3. Back to Dashboard Button Added */}

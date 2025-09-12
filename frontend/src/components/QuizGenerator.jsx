@@ -161,7 +161,7 @@ export default function QuizGenerator() {
   const progressPercentage = quiz ? Math.round((progress / quiz.length) * 100) : 0;
 
   return (
-    <div className="min-h-[90vh] bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-[90vh] bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-[5vh]">
       <div className="max-w-4xl mx-auto p-6 pt-10">
         
         {/* Back Link */}

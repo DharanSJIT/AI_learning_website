@@ -426,7 +426,7 @@ export default function DashboardGrid({ user }) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 mt-[3vh]">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 mt-[3vh] mb-[3vh]">
       <div className="p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <header className="mb-12">
