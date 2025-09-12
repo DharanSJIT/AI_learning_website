@@ -146,7 +146,7 @@ export default function Navbar() {
     <>
       <nav className={`fixed top-0 left-0 right-0 z-50 w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 transition-all duration-300 ease-in-out ${isScrolled ? 'bg-white/90 backdrop-blur-lg shadow-md border-b border-slate-200/80' : 'bg-white shadow-sm'}`}>
         <button onClick={handleLogoClick} className="flex items-center gap-2 text-lg sm:text-xl lg:text-2xl font-bold hover:scale-105 transition-transform duration-300">
-          <span>🚀</span>
+          {/* <span>🚀</span> */}
           <span className="bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent">AI-Powered Learning</span>
         </button>
 

@@ -419,8 +419,8 @@ export default function DashboardGrid({ user }) {
       color: "bg-emerald-600 hover:bg-emerald-700",
     },
     {
-      label: "Check Resume",
-      action: () => navigate("/ats-checker"),
+      label: "Image Analyzer",
+      action: () => navigate("/image-analysis"),
       color: "bg-purple-600 hover:bg-purple-700",
     },
   ];
