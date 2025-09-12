@@ -62,11 +62,11 @@ const SocialIcon = ({ href, icon: Icon, hoverTitle, hoverColor }) => {
 
 export default function ProfessionalFooter() {
   return (
-    <footer className="bg-gray-100 border-t border-gray-200">
+    <footer className="bg-gray-200 border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
         
         {/* === Top Section: Brand & Socials === */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-8 border-b border-gray-200 pb-8">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-8 border-b border-gray-300 pb-8">
           {/* Brand Info */}
           <div className="flex-shrink-0 text-center md:text-left">
             {/* ✨ Changed button to a Link */}
@@ -168,7 +168,7 @@ export default function ProfessionalFooter() {
         </div>
 
         {/* === Bottom Section: Copyright === */}
-        <div className="border-t border-gray-200 pt-8">
+        <div className="border-t border-gray-300 pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             <p className="text-sm text-gray-500">
               © {new Date().getFullYear()} AI-Powered Learning. All Rights Reserved.
