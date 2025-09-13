@@ -85,7 +85,7 @@ export default function ChatAssistant({ user }) {
     <div
       className={`${
         isFullPage
-          ? "w-full h-[70vh]" // Adjusted height for better balance
+          ? "w-full h-[70vh]" // ✅ Height is now 60vh
           : "w-[22rem] sm:w-[26rem] h-[36rem]"
       } flex flex-col bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden transition-all duration-300`}
     >
@@ -171,12 +171,13 @@ export default function ChatAssistant({ user }) {
   );
 
   return isFullPage ? (
-    <div className="min-h-[90vh] w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-20 px-4">
-      <div className="max-w-5xl mx-auto">
-        <div className="absolute left-[3vw] top-[13vh]">
+    <div className="min-h-[90vh] w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-12 md:py-20 px-4 flex items-center justify-center">
+      {/* ✅ Width is now controlled here, responsive for different screen sizes */}
+      <div className="w-full max-w-2xl lg:max-w-3xl">
+        <div className="mb-6 absolute left-[3vw] top-[11vh]">
         <Link
-          to="/services"
-          className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-6 font-medium transition-colors group"
+          to="/dashboard"
+          className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors group"
         >
           <svg
             className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1"
@@ -194,11 +195,6 @@ export default function ChatAssistant({ user }) {
           Back to Dashboard
         </Link>
         </div>
-        {/* <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-800">
-            Chat with your AI Mentor
-          </h1>
-        </div> */}
         {ChatUI}
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"; // ✨ Import Link for navigation
+import { Link } from "react-router-dom";
 import { Linkedin, Github, Instagram, Mail, Phone, MapPin, ExternalLink } from "lucide-react";
 
 // Mock WhatsApp icon component (as provided)
@@ -9,7 +9,6 @@ const WhatsAppIcon = ({ className }) => (
   </svg>
 );
 
-// ✨ Reusable component for internal footer links using React Router's <Link>
 const FooterLink = ({ to, children }) => (
   <Link 
     to={to} 
@@ -19,7 +18,6 @@ const FooterLink = ({ to, children }) => (
   </Link>
 );
 
-// Reusable component for external links (unchanged)
 const ExternalFooterLink = ({ href, children }) => (
   <a
     href={href}
@@ -32,7 +30,6 @@ const ExternalFooterLink = ({ href, children }) => (
   </a>
 );
 
-// Social media icon component with custom tooltip (unchanged)
 const SocialIcon = ({ href, icon: Icon, hoverTitle, hoverColor }) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -65,11 +62,8 @@ export default function ProfessionalFooter() {
     <footer className="bg-gray-200 border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
         
-        {/* === Top Section: Brand & Socials === */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 border-b border-gray-300 pb-8">
-          {/* Brand Info */}
           <div className="flex-shrink-0 text-center md:text-left">
-            {/* ✨ Changed button to a Link */}
             <Link 
               to="/"
               className="flex items-center justify-center md:justify-start gap-3 text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-300"
@@ -84,7 +78,6 @@ export default function ProfessionalFooter() {
             </p>
           </div>
           
-          {/* Follow Us Section */}
           <div className="text-center md:text-right">
             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
               Follow Us
@@ -119,8 +112,9 @@ export default function ProfessionalFooter() {
         </div>
 
         {/* === Middle Section: Links Grid === */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-12">
-          {/* ✨ All FooterLink components now use the 'to' prop for navigation */}
+        {/* ✅ This line has been updated for mobile responsiveness */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 py-12">
+          
           {/* Quick Links */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Quick Links</h3>

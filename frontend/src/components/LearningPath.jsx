@@ -9,6 +9,7 @@ export default function LearningPath() {
   const [course, setCourse] = useState("");
   const [path, setPath] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isCopied, setIsCopied] = useState(false); // ✅ 1. Add state to track copy status
 
   // Handle Enter key press
   const handleKeyPress = (e) => {
@@ -81,38 +82,29 @@ Do NOT use markdown (** or *), just plain text.`;
     const lineHeight = 7;
     let yPosition = margin;
 
-    // Set font
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(12);
 
-    // Add title
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(16);
     const title = `Learning Path: ${course}`;
     doc.text(title, margin, yPosition);
     yPosition += 15;
 
-    // Reset font for content
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(11);
 
-    // Split content into lines that fit the page width
     const lines = doc.splitTextToSize(path, maxLineWidth);
 
-    // Process each line and add page breaks when needed
     lines.forEach((line) => {
-      // Check if we need a new page
       if (yPosition + lineHeight > pageHeight - margin) {
         doc.addPage();
         yPosition = margin;
       }
-
-      // Add the line to current page
       doc.text(line, margin, yPosition);
       yPosition += lineHeight;
     });
 
-    // Save the PDF
     doc.save(`${course || "learning-path"}.pdf`);
   };
 
@@ -134,11 +126,23 @@ Do NOT use markdown (** or *), just plain text.`;
     saveAs(blob, `${course || "learning-path"}.docx`);
   };
 
+  // ✅ 2. Create a handler for the copy action
+  const handleCopy = () => {
+    if (!path || isCopied) return;
+
+    navigator.clipboard.writeText(path);
+    setIsCopied(true);
+
+    // Reset the button back to "Copy Text" after 2.5 seconds
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 2500);
+  };
+
   return (
-    <div className="min-h-[90vh] max-h-[90vh] bg-gray-50 py-6 px-4">
-      {/* <div className="min-h-[90vh] max-h-[90vh] bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6 mt-[-15px]"></div> */}
-      <div className="max-w-4xl mx-auto">
-        {/* Back Link */}
+    <div className="min-h-[85vh] max-h-[85vh] bg-gray-50  px-4 mt-[7vh] ">
+      <div className="max-w-4xl mx-auto ">
+        <div className="absolute left-[2vw] top-[10vh] ">
         <Link
           to="/services"
           className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 font-medium transition-colors"
@@ -153,10 +157,9 @@ Do NOT use markdown (** or *), just plain text.`;
           </svg>
           Back to Dashboard
         </Link>
+        </div>
 
-        {/* Main Card */}
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8">
-          {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               📚 Learning Path Generator
@@ -166,7 +169,6 @@ Do NOT use markdown (** or *), just plain text.`;
             </p>
           </div>
 
-          {/* Input Section */}
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row gap-4">
               <input
@@ -175,65 +177,18 @@ Do NOT use markdown (** or *), just plain text.`;
                 onChange={(e) => setCourse(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Enter a course or topic (e.g., Python, Data Science, Web Development)"
-                className="
-                  flex-1
-                  px-4 
-                  py-3 
-                  border 
-                  border-gray-300 
-                  rounded-lg
-                  focus:outline-none 
-                  focus:ring-2 
-                  focus:ring-blue-500 
-                  focus:border-transparent
-                  text-gray-900
-                  placeholder-gray-500
-                "
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 onClick={generatePath}
                 disabled={loading || !course.trim()}
-                className="
-                  px-6 
-                  py-3 
-                  bg-blue-600 
-                  text-white 
-                  rounded-lg 
-                  font-medium
-                  hover:bg-blue-700 
-                  focus:outline-none 
-                  focus:ring-2 
-                  focus:ring-blue-500 
-                  focus:ring-offset-2
-                  disabled:opacity-50 
-                  disabled:cursor-not-allowed
-                  transition-colors
-                  min-w-[120px]
-                  flex
-                  items-center
-                  justify-center
-                "
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-w-[120px] flex items-center justify-center"
               >
                 {loading ? (
                   <>
-                    <svg
-                      className="animate-spin mr-2 h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"
-                      />
+                    <svg className="animate-spin mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                     </svg>
                     Generating...
                   </>
@@ -242,123 +197,69 @@ Do NOT use markdown (** or *), just plain text.`;
                 )}
               </button>
             </div>
-           
           </div>
 
-          {/* Results Section */}
           {path && (
             <div className="space-y-6">
-              {/* Learning Path Content - No scroll, full height */}
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                   <span className="mr-2">🎯</span>
                   Your Learning Path for "{course}"
                 </h3>
-                <div
-                  className="
-                    text-gray-700 
-                    whitespace-pre-wrap 
-                    leading-relaxed
-                    select-text
-                  "
-                >
+                <div className="text-gray-700 whitespace-pre-wrap leading-relaxed select-text">
                   {path}
                 </div>
               </div>
 
-              {/* Export Buttons */}
               <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={exportPDF}
-                  className="
-                    flex items-center gap-2 
-                    px-4 py-2 
-                    bg-red-600 
-                    text-white 
-                    rounded-lg 
-                    hover:bg-red-700 
-                    transition-colors
-                    font-medium
-                  "
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   Export PDF
                 </button>
 
                 <button
                   onClick={exportWord}
-                  className="
-                    flex items-center gap-2 
-                    px-4 py-2 
-                    bg-blue-600 
-                    text-white 
-                    rounded-lg 
-                    hover:bg-blue-700 
-                    transition-colors
-                    font-medium
-                  "
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   Export Word
                 </button>
 
+                {/* ✅ 3. Update the Copy button to be dynamic */}
                 <button
-                  onClick={() => navigator.clipboard.writeText(path)}
-                  className="
-                    flex items-center gap-2 
-                    px-4 py-2 
-                    bg-green-600 
-                    text-white 
-                    rounded-lg 
-                    hover:bg-green-700 
-                    transition-colors
-                    font-medium
-                  "
+                  onClick={handleCopy}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all
+                    ${isCopied ? 'bg-indigo-500' : 'bg-green-600 hover:bg-green-700'}
+                  `}
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Copy Text
+                  {isCopied ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      Copy Text
+                    </>
+                  )}
                 </button>
               </div>
             </div>
           )}
 
-          {/* Empty State */}
           {!path && !loading && (
             <div className="text-center py-12 text-gray-500">
               <div className="text-6xl mb-4">🚀</div>
@@ -367,28 +268,12 @@ Do NOT use markdown (** or *), just plain text.`;
             </div>
           )}
 
-          {/* Loading State */}
           {loading && (
             <div className="text-center py-12">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                <svg
-                  className="animate-spin h-8 w-8 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  />
+                <svg className="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
               </div>
               <p className="text-lg font-medium text-gray-700">Creating your learning path...</p>

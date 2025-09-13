@@ -9,13 +9,11 @@ import {
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "./firebase";
 
-// --- Import Layout Components ---
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+// --- Import Layout and UI Components ---
+import Layout from "./components/Layout"; // ✨ Using the dedicated Layout component
 import Notification from "./components/Notification";
-import ScrollToTop from "./components/ScrollToTop"; // ✨ Import the component
 
-// --- Import all your page and feature components ---
+// --- Import all page and feature components ---
 import Welcome from "./pages/Welcome";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -42,13 +40,13 @@ import BlogPostPage from "./pages/BlogPostPage";
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 
+// --- Page Wrapper Components (with the `h-full` fix) ---
+
 const Profile = () => (
-  <div className="pt-8">
+  <div className="pt-8 h-full">
     <div className="max-w-7xl mx-auto px-6 lg:px-8">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-          Profile
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Profile</h1>
         <p className="text-gray-600 dark:text-gray-300">
           User profile information and account settings will be displayed here.
         </p>
@@ -56,26 +54,26 @@ const Profile = () => (
     </div>
   </div>
 );
+
 const Services = () => (
-  <div className="pt-8">
+  <div className="pt-8 h-full">
     <ServicesComponent />
   </div>
 );
+
 const Explore = () => (
-  <div className="pt-8">
+  <div className="pt-8 h-full">
     <ExplorePage />
   </div>
 );
+
 const Overviews = () => (
-  <div className="pt-8">
+  <div className="pt-8 h-full">
     <div className="max-w-7xl mx-auto px-6 lg:px-8">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-          Overviews
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Overviews</h1>
         <p className="text-gray-600 dark:text-gray-300">
-          General overviews, summaries, and analytical insights are available
-          here.
+          General overviews, summaries, and analytical insights are available here.
         </p>
       </div>
     </div>
@@ -86,39 +84,18 @@ function AppWrapper() {
   const [user, loading] = useAuthState(auth);
   const location = useLocation();
   const navigate = useNavigate();
-
-  const [notification, setNotification] = useState({
-    message: "",
-    type: "",
-    visible: false,
-  });
-
+  const [notification, setNotification] = useState({ message: "", type: "", visible: false });
   const previousUser = useRef(user);
 
-  const pathsWithoutFooter = ["/", "/login", "/signup"];
-
   useEffect(() => {
-    if (loading) {
-      return;
-    }
-
+    if (loading) return;
     if (previousUser.current && !user) {
-      setNotification({
-        message: "Logged out successfully!",
-        type: "error",
-        visible: true,
-      });
+      setNotification({ message: "Logged out successfully!", type: "error", visible: true });
     }
-
     if (location.state?.message) {
-      setNotification({
-        message: location.state.message,
-        type: "success",
-        visible: true,
-      });
+      setNotification({ message: location.state.message, type: "success", visible: true });
       navigate(location.pathname, { replace: true, state: {} });
     }
-
     previousUser.current = user;
   }, [user, loading, location, navigate]);
 
@@ -127,27 +104,21 @@ function AppWrapper() {
       <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-          <div className="text-xl font-medium text-gray-600 dark:text-gray-300">
-            Loading...
-          </div>
+          <p className="text-xl font-medium text-gray-600 dark:text-gray-300">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
-
-      {/* ✨ ADD THE SCROLL TO TOP COMPONENT HERE ✨ */}
-      <ScrollToTop />
-
+    <>
       <Notification
         notification={notification}
         onClose={() => setNotification({ ...notification, visible: false })}
       />
-
-      <main className="flex-grow pt-16">
+      
+      {/* ✨ All routes are wrapped by the Layout component ✨ */}
+      <Layout>
         <Routes>
           {/* Auth Routes */}
           <Route path="/" element={<Welcome />} />
@@ -175,6 +146,8 @@ function AppWrapper() {
           <Route path="/image-analysis" element={<ImageExplanation />} />
           <Route path="/document-analyzer" element={<DocumentAnalyzer />} />
           <Route path="/settings" element={<Settings />} />
+
+          {/* Static Pages */}
           <Route path="/help-center" element={<HelpCenter />} />
           <Route path="/faq" element={<FaqPage />} />
           <Route path="/blog" element={<BlogPage />} />
@@ -182,10 +155,8 @@ function AppWrapper() {
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms-of-service" element={<TermsOfServicePage />} />
         </Routes>
-      </main>
-
-      {!pathsWithoutFooter.includes(location.pathname) && <Footer />}
-    </div>
+      </Layout>
+    </>
   );
 }
 

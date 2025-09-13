@@ -325,9 +325,9 @@ ${questionsResponse}
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl">
+            {/* <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl">
               <Brain className="w-10 h-10 text-white" />
-            </div>
+            </div> */}
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Document AI Analyzer
             </h1>
@@ -486,7 +486,7 @@ ${questionsResponse}
           {/* Document Analysis */}
           <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 border border-gray-100">
             <h3 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-              <Brain className="w-6 h-6 text-blue-600" />
+              {/* <Brain className="w-6 h-6 text-blue-600" /> */}
               Document Analysis
             </h3>
 

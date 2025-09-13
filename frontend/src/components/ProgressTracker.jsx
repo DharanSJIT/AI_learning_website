@@ -264,7 +264,7 @@ export default function ProgressTracker() {
     <>
       <div className="h-[90vh] overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="absolute left-[3vw] top-24">
+          <div className="absolute left-[3vw] top-[10vh]">
             <Link
               to="/services"
               className="inline-flex items-center text-blue-600 hover:underline mb-4 font-medium"
