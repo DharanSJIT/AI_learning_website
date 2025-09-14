@@ -90,7 +90,7 @@ export default function ProfessionalFooter() {
                 hoverColor="hover:bg-green-500" 
               />
               <SocialIcon 
-                href="https://instagram.com" 
+                href="https://www.instagram.com/364dharan?igsh=dmlramw2dXk5Ym54" 
                 icon={Instagram} 
                 hoverTitle="Follow on Instagram" 
                 hoverColor="hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500" 
