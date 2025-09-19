@@ -140,10 +140,14 @@ export default function ImageExplanation() {
 
       const rawText = await result.response.text();
 
+      // Clean and format the response with proper paragraph breaks
       const cleanedText = rawText
         .replace(/^\s*[*-]\s?/gm, "")
         .replace(/\*\*(.*?)\*\*/g, "$1")
-        .replace(/\*/g, "");
+        .replace(/\*/g, "")
+        .replace(/\n{3,}/g, '\n\n') // Replace multiple line breaks with double line breaks
+        .replace(/\.\s*([A-Z])/g, '.\n\n$1') // Add line break after sentences that start new topics
+        .trim();
 
       setResponse(cleanedText);
       
