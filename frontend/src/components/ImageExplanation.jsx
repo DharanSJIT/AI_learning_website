@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import {
@@ -22,15 +22,51 @@ export default function ImageExplanation() {
   const [copied, setCopied] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const fileInputRef = useRef(null);
+  const previewSectionRef = useRef(null);
+  const analysisOutputRef = useRef(null);
 
   const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+
+  // Function to check if device is mobile or tablet
+  const isMobileOrTablet = () => {
+    return window.innerWidth <= 1024; // lg breakpoint in Tailwind
+  };
+
+  // Function to scroll to preview section
+  const scrollToPreview = () => {
+    if (isMobileOrTablet() && previewSectionRef.current) {
+      setTimeout(() => {
+        previewSectionRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+          inline: 'nearest'
+        });
+      }, 100); // Small delay to ensure image is rendered
+    }
+  };
+
+  // Function to scroll to analysis output section
+  const scrollToAnalysisOutput = () => {
+    if (isMobileOrTablet() && analysisOutputRef.current) {
+      setTimeout(() => {
+        analysisOutputRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+          inline: 'nearest'
+        });
+      }, 200); // Slightly longer delay for analysis completion
+    }
+  };
 
   const handleFileUpload = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       setFile(selectedFile);
       const reader = new FileReader();
-      reader.onload = (e) => setPreviewUrl(e.target.result);
+      reader.onload = (e) => {
+        setPreviewUrl(e.target.result);
+        scrollToPreview(); // Scroll after image is loaded
+      };
       reader.readAsDataURL(selectedFile);
       setUrl("");
     }
@@ -41,6 +77,7 @@ export default function ImageExplanation() {
     if (e.target.value) {
       setFile(null);
       setPreviewUrl(e.target.value);
+      scrollToPreview(); // Scroll after URL is set
     }
   };
 
@@ -105,9 +142,13 @@ export default function ImageExplanation() {
 
       const cleanedText = rawText
         .replace(/^\s*[*-]\s?/gm, "")
-        .replace(/\*\*(.*?)\*\*/g, "$1");
+        .replace(/\*\*(.*?)\*\*/g, "$1")
+        .replace(/\*/g, "");
 
       setResponse(cleanedText);
+      
+      // Scroll to analysis output after successful analysis
+      scrollToAnalysisOutput();
     } catch (error) {
       console.error("Error analyzing image:", error);
       setResponse(
@@ -148,7 +189,6 @@ export default function ImageExplanation() {
 
   return (
     <div className="min-h-[90vh] max-h-[90vh] bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6 mt-[-15px]">
-
       <div className="max-w-6xl mx-auto pt-4">
         <Link
           to="/services"
@@ -260,7 +300,7 @@ export default function ImageExplanation() {
         </div>
 
         {/* Second Row: Preview + AI Response */}
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8" ref={previewSectionRef}>
           {/* Image Preview */}
           {previewUrl && (
             <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
@@ -307,7 +347,7 @@ export default function ImageExplanation() {
             </div>
 
             {(response || loading) && (
-              <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+              <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100" ref={analysisOutputRef}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold text-gray-800">
                     AI Analysis
