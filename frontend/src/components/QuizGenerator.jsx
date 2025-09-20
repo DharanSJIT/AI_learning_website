@@ -119,7 +119,7 @@ export default function QuizGenerator() {
     }, 0);
   }, [quiz, answers]);
 
-  // --- MODIFIED: handleSubmitQuiz now saves results to Firestore if logged in ---
+  // --- UPDATED: handleSubmitQuiz now saves results with questions and user answers ---
   const handleSubmitQuiz = useCallback(async () => {
     setQuizSubmitted(true);
     setShowResults(true);
@@ -127,21 +127,40 @@ export default function QuizGenerator() {
     // If the user is logged in, save the results to Firestore
     if (user && quiz) {
       const score = calculateScore();
+      
+      // Convert answers object to array matching quiz order
+      const userAnswersArray = quiz.map((_, index) => answers[index] || null);
+      
+      // Transform quiz to match expected format for the history viewer
+      const questionsForStorage = quiz.map(q => ({
+        question: q.question,
+        options: q.options,
+        correctAnswer: q.answer, // Map 'answer' to 'correctAnswer'
+        explanation: q.explanation || null // Include explanation if available
+      }));
+      
       const resultData = {
         userId: user.uid,
         topic: topic,
         score: score,
         totalQuestions: quiz.length,
         percentage: Math.round((score / quiz.length) * 100),
+        
+        // 🔥 CRITICAL: Save questions and userAnswers for history viewer
+        questions: questionsForStorage,  // Complete questions with all data
+        userAnswers: userAnswersArray,   // User's selected answers in order
+        
+        // Legacy fields (keeping for backward compatibility)
         answers: answers,
-        quiz: quiz, // Storing the full quiz for potential review later
+        quiz: quiz,
+        
         createdAt: serverTimestamp(),
       };
 
       try {
         const resultsCollectionRef = collection(db, "users", user.uid, "quizResults");
         await addDoc(resultsCollectionRef, resultData);
-        console.log("Quiz results saved successfully!");
+        console.log("Quiz results saved successfully with questions and answers!");
       } catch (e) {
         console.error("Error saving quiz results: ", e);
       }
@@ -498,9 +517,6 @@ export default function QuizGenerator() {
             {quiz && (
               <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                    Progress: {progress} / {quiz.length} questions answered
-                  </span>
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                     {progressPercentage}%
                   </span>
