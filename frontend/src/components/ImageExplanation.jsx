@@ -112,7 +112,7 @@ export default function ImageExplanation() {
       setLoading(true);
       setResponse("");
 
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
       let imageData;
       let mimeType;
