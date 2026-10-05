@@ -70,10 +70,10 @@ export default function Welcome() {
             className="hidden lg:block animate-fadeIn" 
             style={{ animationDelay: '0.2s' }}
           >
-            <div className="relative p-4">
+            <div className="relative p-5">
                <div className="absolute inset-0 bg-indigo-200 dark:bg-indigo-900/50 rounded-3xl transform -rotate-6 transition-transform duration-500 hover:rotate-0"></div>
                <img 
-                src="https://images.unsplash.com/photo-1677756119517-756a188d2d94?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS56YA-ZyI000MwdlojPSEd3vdyjRnSsKzbHBZaBoAZl4PHXtY573Iz39zv&s=10"
                 alt="AI Learning Platform Visual"
                 className="relative w-full h-full object-cover rounded-2xl shadow-2xl"
               />
